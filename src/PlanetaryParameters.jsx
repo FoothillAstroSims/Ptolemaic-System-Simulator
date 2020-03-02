@@ -18,28 +18,24 @@ const planet = {
  */
 const planetPresets = {
     [planet.JUPITER]: {
-        name: "Jupiter",
         epicycleSize: 0.19,
         eccentricity: 0.05,
         motionRate: 0.08,
         apogeeAngle: 152.2,
     },
     [planet.VENUS]: {
-        name: "Venus",
         epicycleSize: 0.72,
         eccentricity: 0.02,
         motionRate: 1.60,
         apogeeAngle: 46.2,
     },
     [planet.MARS]: {
-        name: "Mars",
         epicycleSize: 0.66,
         eccentricity: 0.10,
         motionRate: 0.52,
         apogeeAngle: 106.7,
     },
     [planet.SATURN]: {
-        name: "Saturn",
         epicycleSize: 0.11,
         eccentricity: 0.06,
         motionRate: 0.03,
@@ -122,8 +118,9 @@ export default class PlanetaryParameters extends React.Component {
     handlePresetSelection(planetName) {
         let params = planetPresets[planet[planetName]];
         if (params !== undefined) {
-            this.setState(params)
-            this.handleChange(params);
+            let nextState = {...this.state, ...params};
+            this.handleChange(nextState);
+            this.setState(nextState);
         }
     }
 
@@ -132,8 +129,9 @@ export default class PlanetaryParameters extends React.Component {
     }
 
     handleSingleVariableChange(event) {
-        this.setState({[event.target.name]: event.target.value});
-        this.handleChange(this.state);
+        let partialState = {[event.target.name]: event.target.value};
+        this.handleChange({...this.state, ...partialState});
+        this.setState(partialState);
     }
 }
 
