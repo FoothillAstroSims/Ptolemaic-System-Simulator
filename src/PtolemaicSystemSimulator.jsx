@@ -1,5 +1,6 @@
 import React from 'react';
 import { PlanetTypes } from './enums.jsx';
+import OrbitView from './OrbitView.jsx';
 import PlanetaryParameters from './PlanetaryParameters.jsx';
 
 export default class PtolemaicSystemSimulator extends React.Component {
@@ -30,12 +31,26 @@ export default class PtolemaicSystemSimulator extends React.Component {
         const debugStateString = JSON.stringify(this.state, null, '\t');
         return (
             <React.Fragment>
-                <h1>PtolemaicSystemSimulator</h1>
-                <pre>PtolemaicSystemSimulator.state = {debugStateString}</pre>
-                <h2> Planetary Parameters</h2>
-                <PlanetaryParameters
-                    onChange={this.handleNewPlantearyParameters.bind(this)}
-                    />
+                <div className="wrapper">
+
+                    <h1>PtolemaicSystemSimulator</h1>
+                    <pre>PtolemaicSystemSimulator.state = {debugStateString}</pre>
+
+                    <div className="box">
+                        <h2> Planetary Parameters</h2>
+                        <PlanetaryParameters
+                            onChange={this.handleNewPlantearyParameters.bind(this)} />
+                    </div>
+
+                    <div className="box">
+                        <h2>Orbit View</h2>
+                        <OrbitView
+                            className = "OrbitView"
+                            planetaryParameters={this.state.planetaryParameters}
+                            controls={this.state.controls} />
+                    </div>
+
+                </div>
             </React.Fragment>
         );
     }

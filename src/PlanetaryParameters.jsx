@@ -84,6 +84,7 @@ export default class PlanetaryParameters extends React.Component {
                     min={0}
                     max={1}
                     step={0.01}
+                    decimals={2}
                     value={this.state.epicycleSize}
                     onChange={this.handleSingleVariableChange} />
                 <br/>
@@ -92,14 +93,16 @@ export default class PlanetaryParameters extends React.Component {
                     min={0.00}
                     max={0.20}
                     step={0.01}
+                    decimals={2}
                     value={this.state.eccentricity}
                     onChange={this.handleSingleVariableChange} />
                 <br/>
                 <SingleVariableControl
                     name="motionRate"
-                    min={0.01}
+                    min={0.00}
                     max={4.50}
-                    step={0.04}
+                    step={0.05}
+                    decimals={2}
                     value={this.state.motionRate}
                     onChange={this.handleSingleVariableChange} />
                 <br/>
@@ -107,7 +110,8 @@ export default class PlanetaryParameters extends React.Component {
                     name="apogeeAngle"
                     min={0.0}
                     max={360.0}
-                    step={3.2}
+                    step={3.6}
+                    decimals={1}
                     value={this.state.apogeeAngle}
                     onChange={this.handleSingleVariableChange} />
                 <br/>
@@ -201,9 +205,10 @@ class SingleVariableControl extends React.Component {
         super(props);
     }
     render() {
+        const value = Number.parseFloat(this.props.value).toFixed(this.props.decimals);
         return (
             <label>
-                {this.props.name}:
+                {this.props.name}
                 <input
                     type="number"
                     name={this.props.name}
@@ -211,7 +216,7 @@ class SingleVariableControl extends React.Component {
                     max={this.props.max}
                     step={this.props.step}
                     onChange={this.props.onChange}
-                    value={this.props.value}
+                    value={value}
                     />
                 <input
                     type="range"
@@ -220,7 +225,7 @@ class SingleVariableControl extends React.Component {
                     max={this.props.max}
                     step={this.props.step}
                     onChange={this.props.onChange}
-                    value={this.props.value}
+                    value={value}
                     />
             </label>
         )
