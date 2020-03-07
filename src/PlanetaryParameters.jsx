@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { PlanetTypes } from './enums.jsx';
+import NumberInputField from './Inputs/NumberInputField.jsx';
 
 /**
  * Enumerated type, for each of the planets found in the drop-down menus.
@@ -81,6 +82,7 @@ export default class PlanetaryParameters extends React.Component {
                 <PlanetPresetSelection onSubmit={this.handlePresetSelection} />
                 <SingleVariableControl
                     name="epicycleSize"
+                    displayName="Epicycle Size"
                     min={0}
                     max={1}
                     step={0.01}
@@ -90,6 +92,7 @@ export default class PlanetaryParameters extends React.Component {
                 <br/>
                 <SingleVariableControl
                     name="eccentricity"
+                    displayName="Eccentricity"
                     min={0.00}
                     max={0.20}
                     step={0.01}
@@ -99,6 +102,7 @@ export default class PlanetaryParameters extends React.Component {
                 <br/>
                 <SingleVariableControl
                     name="motionRate"
+                    displayName="Motion Rate"
                     min={0.00}
                     max={4.50}
                     step={0.05}
@@ -108,6 +112,7 @@ export default class PlanetaryParameters extends React.Component {
                 <br/>
                 <SingleVariableControl
                     name="apogeeAngle"
+                    displayName="Apogee Angle"
                     min={0.0}
                     max={360.0}
                     step={3.6}
@@ -132,8 +137,8 @@ export default class PlanetaryParameters extends React.Component {
         this.props.onChange(params);
     }
 
-    handleSingleVariableChange(event) {
-        let partialState = {[event.target.name]: event.target.value};
+    handleSingleVariableChange(key, value) {
+        let partialState = {[key]: value};
         this.handleChange({...this.state, ...partialState});
         this.setState(partialState);
     }
@@ -171,7 +176,9 @@ class PlanetPresetSelection extends React.Component {
         const planetNameArray = Object.keys(planet);
         const planetOptionList = planetNameArray.map((name)=> {
             let displayName = name[0] + name.substr(1).toLowerCase();
-            return <option key={name} value={name}>{displayName}</option>
+            return (
+                <option key={name} value={name}>{displayName}</option>
+            );
         });
         return (
             <form onSubmit={this.handleSubmit}>
@@ -196,27 +203,27 @@ PlanetPresetSelection.propTypes = {
 /**
  * A Single Variable Control is a combination of both a number input box and a
  * slider.  It can be used to adjust a single "planetary parameter" at a time.
- * This controller does not maintain it's own state in any way, but it can help
- * to avoid duplication of the text/slider combination.
  * @extends React
  */
 class SingleVariableControl extends React.Component {
     constructor(props) {
         super(props);
     }
+
     render() {
         const value = Number.parseFloat(this.props.value).toFixed(this.props.decimals);
         return (
             <label>
-                {this.props.name}
-                <input
+                {this.props.displayName}:&nbsp;
+                <NumberInputField
                     type="number"
                     name={this.props.name}
                     min={this.props.min}
                     max={this.props.max}
                     step={this.props.step}
-                    onChange={this.props.onChange}
-                    value={value}
+                    onNewValue={this.handleNewValue.bind(this)}
+                    value={this.props.value}
+                    decimals={this.props.decimals}
                     />
                 <input
                     type="range"
@@ -224,12 +231,43 @@ class SingleVariableControl extends React.Component {
                     min={this.props.min}
                     max={this.props.max}
                     step={this.props.step}
-                    onChange={this.props.onChange}
+                    onChange={this.handleChange.bind(this)}
                     value={value}
                     />
             </label>
         )
     }
+
+    handleNewValue(value) {
+        let name = this.props.name;
+        value = this.convertEntryToValidNumber(value);
+        this.props.onChange(name, value);
+    }
+
+    handleChange(event) {
+        let name = this.props.name;
+        let value = this.convertEntryToValidNumber(event.target.value);
+        this.props.onChange(name, value);
+    }
+
+    /**
+     * Converts string into a number, and ensures that it is within the valid
+     * range of numbers, using the "min" and "max" provided by the props passed
+     * to this component.
+     * @param  {String} value The direct input string from user.
+     * @return {Number} The validated number output
+     */
+    convertEntryToValidNumber(value) {
+        let type = typeof(value);
+        if (isNaN(value) || type !== 'string' && type !== 'number') {
+            return this.props.min;
+        }
+        value = Number.parseFloat(value);
+        value = Math.min(this.props.max, value);
+        value = Math.max(this.props.min, value);
+        return value;
+    }
+
 }
 
 SingleVariableControl.propTypes = {
@@ -238,5 +276,7 @@ SingleVariableControl.propTypes = {
     max: PropTypes.number,
     step: PropTypes.number,
     value: PropTypes.number,
+    decimals: PropTypes.number,
     onChange: PropTypes.func,
+    displayName: PropTypes.string,
 }
