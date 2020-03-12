@@ -1,6 +1,5 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
-// import {PlanetTypes} from './enums.jsx';
+import PropTypes from 'prop-types';
 import * as PIXI from 'pixi.js'
 
 /**
@@ -62,27 +61,31 @@ export default class OrbitView extends React.Component {
     componentDidMount() {
         this.app = new PIXI.Application({
             antialias: true,
-            resolution: window.devicePixelRatio || 1,
-            width: 600,
-            height: 600,
+            // resolution: window.devicePixelRatio || 1,
+            width: this.sideLength,
+            height: this.sideLength,
+            // autoResize: true,
         });
+        // window.addEventListener('resize', this.onResize.bind(this));
         this.pixiElement.appendChild(this.app.view);
         // this.app.stage.interactive = true;
         this.app.stage.addChild(this.earthGraphic);
         this.app.stage.addChild(this.sunGraphic);
         this.app.stage.addChild(this.eccentricityPlusMarker);
         this.app.stage.addChild(this.earthSunLine);
+        this.updateAll(0); // initial update.
         this.animationFrameIdentifier = window.requestAnimationFrame(this.animationFrameLoop);
     }
 
     render() {
         return (
             <React.Fragment>
-            <div
-                className="OrbitView"
-                ref={(thisDiv) => { this.pixiElement = thisDiv; }}
+            <div className="OrbitViewWrapper">
+                <div
+                    className="OrbitView"
+                    ref={(thisDiv) => { this.pixiElement = thisDiv; }}
                 />
-            {/* commented out */}
+            </div>
             <pre>this.state = {JSON.stringify(this.state, null, '\t')}</pre>
             </React.Fragment>
         )
@@ -171,31 +174,45 @@ export default class OrbitView extends React.Component {
         this.earthSunLine.lineTo(this.sunGraphic.x, this.sunGraphic.y);
     }
 
-
+    /**
+     * The function that is called when the PIXI.JS canvas itself is resized.
+     *
+     * I'm leaving this commented out because I haven't yet figured out how to
+     * get it to resize correctly. Will probably require some messing around
+     * with CSS as well.
+     *
+     */
+    // onResize() {
+    //     this.sideLength = this.app.view.width;
+    //     // this.app.renderer.resize(this.sideLength, this.sideLength);
+    //     console.log("resized to:", this.app.view.width, this.app.view.height);
+    //     this.setState({
+    //         "side length": this.sideLength
+    //     });
+    // }
 }
 
 
 
 
-//
-// OrbitView.propTypes = {
-//     planetaryParameters: PropTypes.exact({
-//         planetaryParameters: {
-//             epicycleSize:           PropTypes.number.isRequired,
-//             eccentricity:           PropTypes.number.isRequired,
-//             motionRate:             PropTypes.number.isRequired,
-//             apogeeAngle:            PropTypes.number.isRequired,
-//             planetType:             PropTypes.instanceOf(PlanetTypes).isRequired,
-//         },
-//         controls: {
-//             animationRate:          PropTypes.number.isRequired,
-//             showDeferent:           PropTypes.bool.isRequired,
-//             showEpicycle:           PropTypes.bool.isRequired,
-//             showPlanetVector:       PropTypes.bool.isRequired,
-//             showEquantVector:       PropTypes.bool.isRequired,
-//             showEarthSunLine:       PropTypes.bool.isRequired,
-//             showEpicyclePlanetLine: PropTypes.bool.isRequired,
-//             pathDuration:           PropTypes.number.isRequired
-//         }
-//     }).isRequired
-// }
+
+OrbitView.propTypes = {
+    planetaryParameters: PropTypes.exact({
+        epicycleSize:           PropTypes.number.isRequired,
+        eccentricity:           PropTypes.number.isRequired,
+        motionRate:             PropTypes.number.isRequired,
+        apogeeAngle:            PropTypes.number.isRequired,
+        planetType:             PropTypes.number.isRequired,
+    }).isRequired,
+    controls: PropTypes.exact({
+        isAnimationEnabled:     PropTypes.bool.isRequired,
+        animationRate:          PropTypes.number.isRequired,
+        showDeferent:           PropTypes.bool.isRequired,
+        showEpicycle:           PropTypes.bool.isRequired,
+        showPlanetVector:       PropTypes.bool.isRequired,
+        showEquantVector:       PropTypes.bool.isRequired,
+        showEarthSunLine:       PropTypes.bool.isRequired,
+        showEpicyclePlanetLine: PropTypes.bool.isRequired,
+        pathDuration:           PropTypes.number.isRequired
+    }).isRequired
+}

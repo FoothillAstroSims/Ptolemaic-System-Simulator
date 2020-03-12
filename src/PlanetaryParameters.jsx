@@ -79,7 +79,11 @@ export default class PlanetaryParameters extends React.Component {
     render() {
         return (
             <React.Fragment>
+                <h2> Planetary Parameters</h2>
                 <PlanetPresetSelection onSubmit={this.handlePresetSelection} />
+                <br/>
+                <fieldset>
+                <legend>Parameters</legend>
                 <SingleVariableControl
                     name="epicycleSize"
                     displayName="Epicycle Size"
@@ -88,7 +92,8 @@ export default class PlanetaryParameters extends React.Component {
                     step={0.01}
                     decimals={2}
                     value={this.state.epicycleSize}
-                    onChange={this.handleSingleVariableChange} />
+                    onChange={this.handleSingleVariableChange}
+                />
                 <br/>
                 <SingleVariableControl
                     name="eccentricity"
@@ -98,7 +103,8 @@ export default class PlanetaryParameters extends React.Component {
                     step={0.01}
                     decimals={2}
                     value={this.state.eccentricity}
-                    onChange={this.handleSingleVariableChange} />
+                    onChange={this.handleSingleVariableChange}
+                />
                 <br/>
                 <SingleVariableControl
                     name="motionRate"
@@ -108,7 +114,8 @@ export default class PlanetaryParameters extends React.Component {
                     step={0.05}
                     decimals={2}
                     value={this.state.motionRate}
-                    onChange={this.handleSingleVariableChange} />
+                    onChange={this.handleSingleVariableChange}
+                />
                 <br/>
                 <SingleVariableControl
                     name="apogeeAngle"
@@ -118,8 +125,30 @@ export default class PlanetaryParameters extends React.Component {
                     step={3.6}
                     decimals={1}
                     value={this.state.apogeeAngle}
-                    onChange={this.handleSingleVariableChange} />
+                    onChange={this.handleSingleVariableChange}
+                />
+                </fieldset>
                 <br/>
+                <fieldset>
+                    <legend>Planet Type</legend>
+                    <label htmlFor="planetTypeRadio1">Superior</label>
+                    <input
+                        type="radio"
+                        name="planetType"
+                        id="planetTypeRadio1"
+                        value={PlanetTypes.SUPERIOR}
+                        onChange={this.handleRadioBoxes.bind(this)}
+                    />
+                    <br/>
+                    <label htmlFor="planetTypeRadio2">Inferior</label>
+                    <input
+                        type="radio"
+                        name="planetType"
+                        id="planetTypeRadio2"
+                        value={PlanetTypes.INFERIOR}
+                        onChange={this.handleRadioBoxes.bind(this)}
+                    />
+                </fieldset>
             </React.Fragment>
         )
     }
@@ -141,6 +170,13 @@ export default class PlanetaryParameters extends React.Component {
         let partialState = {[key]: value};
         this.handleChange({...this.state, ...partialState});
         this.setState(partialState);
+    }
+
+    handleRadioBoxes(event) {
+        this.handleChange({
+            ...this.state,
+            [event.target.name]: Number.parseInt(event.target.value)
+        });
     }
 }
 

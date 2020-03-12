@@ -33,32 +33,27 @@ export default class PtolemaicSystemSimulator extends React.Component {
         const debugStateString = JSON.stringify(this.state, null, '\t');
         return (
             <React.Fragment>
+
+                <h1>PtolemaicSystemSimulator</h1>
+                <pre>PtolemaicSystemSimulator.state = {debugStateString}</pre>
+
                 <div className="wrapper">
-
-                    <h1>PtolemaicSystemSimulator</h1>
-                    <pre>PtolemaicSystemSimulator.state = {debugStateString}</pre>
-
                     <div className="box">
-                        <h2> Planetary Parameters</h2>
-                        <PlanetaryParameters
-                            onChange={this.handleNewPlantearyParameters.bind(this)} />
-                    </div>
-
-                    <div className="box">
-                        <h2>Controls and Settings</h2>
-                        <ControlsAndSettings
-                            controls = {this.state.controls}
-                            onChange = {this.handleNewControlSettings.bind(this)} />
-                    </div>
-
-                    <div className="box">
-                        <h2>Orbit View</h2>
                         <OrbitView
                             className = "OrbitView"
                             planetaryParameters={this.state.planetaryParameters}
-                            controls={this.state.controls} />
+                            controls={this.state.controls}
+                        />
                     </div>
-
+                    <div className="box">
+                        <PlanetaryParameters
+                            onChange={this.handleNewPlantearyParameters.bind(this)}
+                        />
+                        <ControlsAndSettings
+                            controls = {this.state.controls}
+                            onChange = {this.handleNewControlSettings.bind(this)}
+                        />
+                    </div>
                 </div>
             </React.Fragment>
         );
