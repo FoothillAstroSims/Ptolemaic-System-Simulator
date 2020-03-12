@@ -43,15 +43,20 @@ export default class OrbitView extends React.Component {
         this.app = null;
 
         this.earthGraphic = this.newEarthGraphic();
+        this.sunGraphic = this.newSunGraphic();
+        this.earthSunLine = new PIXI.Graphics();
         this.eccentricityPlusMarker = new PIXI.Graphics();
-    }
 
-    render() {
-        return (
-            <div
-                className="OrbitView"
-                ref={(thisDiv) => { this.pixiElement = thisDiv; }} />
-        )
+        this.lastTimestamp = 0;
+        this.lastTheta = 0;
+        this.sunTheta = 0;
+
+        this.state = {
+            timestamp: 0,
+            delta: 0,
+        }
+
+        this.animationFrameLoop = this.animationFrameLoop.bind(this);
     }
 
     componentDidMount() {
@@ -62,9 +67,58 @@ export default class OrbitView extends React.Component {
             height: 600,
         });
         this.pixiElement.appendChild(this.app.view);
-        this.app.stage.interactive = true;
+        // this.app.stage.interactive = true;
         this.app.stage.addChild(this.earthGraphic);
+        this.app.stage.addChild(this.sunGraphic);
         this.app.stage.addChild(this.eccentricityPlusMarker);
+        this.app.stage.addChild(this.earthSunLine);
+        this.animationFrameIdentifier = window.requestAnimationFrame(this.animationFrameLoop);
+    }
+
+    render() {
+        return (
+            <React.Fragment>
+            <div
+                className="OrbitView"
+                ref={(thisDiv) => { this.pixiElement = thisDiv; }}
+                />
+            {/* commented out */}
+            <pre>this.state = {JSON.stringify(this.state, null, '\t')}</pre>
+            </React.Fragment>
+        )
+    }
+
+    /**
+     * animationFrameLoop is called by the window.requestAnimationFrame
+     * function, and is the core animation loop.  The timestamp is provided
+     * automatically.
+     */
+    animationFrameLoop(timestamp) {
+        let delta = timestamp - this.lastTimestamp;
+        this.lastTimestamp = timestamp;
+
+        this.updateSunTheta(delta);
+        this.updateSun(delta);
+        this.updateEarthSunline();
+
+        this.setState({
+            timestamp,
+            delta,
+            sunTheta: this.sunTheta
+        });
+
+        window.requestAnimationFrame(this.animationFrameLoop);
+    }
+
+    /**
+     * The "sun theta"
+     */
+    updateSunTheta(delta) {
+        let period = 5000;
+        let motionRate = this.props.planetaryParameters.motionRate;
+        let deltaTheta = 2 * Math.PI * delta / period;
+        this.sunTheta += deltaTheta * motionRate;
+        this.sunTheta %= 2 * Math.PI;
     }
 
     /**
@@ -84,6 +138,38 @@ export default class OrbitView extends React.Component {
         g.drawCircle(w, h, r);
         g.endFill();
         return g;
+    }
+
+    newSunGraphic() {
+        const g = new PIXI.Graphics();
+        g.lineStyle(1, 0xFFFFFF, 1);
+        g.beginFill(0xf5c242, 1);
+        g.drawCircle(0, 0, this.sideLength / 50);
+        g.endFill();
+        return g;
+    }
+
+    updateSun() {
+        let theta = this.sunTheta;
+        let x_p = 0.4 * Math.cos(theta) + 0.5;
+        let y_p = 0.4 * Math.sin(theta) + 0.5;
+        let x = this.sideLength * x_p;
+        let y = this.sideLength * y_p;
+        this.sunGraphic.clear();
+        this.sunGraphic.lineStyle(1, 0xFFFFFF, 1);
+        this.sunGraphic.beginFill(0xf5c242, 1);
+        this.sunGraphic.drawCircle(0, 0, this.sideLength / 60);
+        this.sunGraphic.endFill();
+        this.sunGraphic.x = x;
+        this.sunGraphic.y = y;
+        this.setState({ x, y, theta});
+    }
+
+    updateEarthSunline() {
+        this.earthSunLine.clear();
+        this.earthSunLine.lineStyle(1, 0xFFFFFF, 1);
+        this.earthSunLine.moveTo(this.sideLength/2, this.sideLength/2);
+        this.earthSunLine.lineTo(this.sunGraphic.x, this.sunGraphic.y);
     }
 
 
