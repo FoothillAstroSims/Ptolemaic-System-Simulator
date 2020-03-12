@@ -28,32 +28,17 @@ export default class OrbitView extends React.Component {
          */
         this.sideLength = 600;
 
-        /**
-         * The pixiElement is a reference to the DOM element that contains
-         * the PIXIJS app. React will create this element, and then PIXIJS
-         * will automatically add things inside it.
-         */
         this.pixiElement = null;
-
-        /**
-         * The app is automatically created by PIXIJS when the component is
-         * mounted.
-         */
         this.app = null;
 
         this.earthGraphic = this.newEarthGraphic();
         this.sunGraphic = this.newSunGraphic();
         this.earthSunLine = new PIXI.Graphics();
-        this.eccentricityPlusMarker = new PIXI.Graphics();
+        this.deferent = new PIXI.Graphics();
 
         this.lastTimestamp = 0;
         this.lastTheta = 0;
         this.sunTheta = 0;
-
-        this.state = {
-            timestamp: 0,
-            delta: 0,
-        }
 
         this.animationFrameLoop = this.animationFrameLoop.bind(this);
     }
@@ -71,7 +56,7 @@ export default class OrbitView extends React.Component {
         // this.app.stage.interactive = true;
         this.app.stage.addChild(this.earthGraphic);
         this.app.stage.addChild(this.sunGraphic);
-        this.app.stage.addChild(this.eccentricityPlusMarker);
+        this.app.stage.addChild(this.deferent);
         this.app.stage.addChild(this.earthSunLine);
         this.updateAll(0); // initial update.
         this.animationFrameIdentifier = window.requestAnimationFrame(this.animationFrameLoop);
@@ -86,7 +71,9 @@ export default class OrbitView extends React.Component {
                     ref={(thisDiv) => { this.pixiElement = thisDiv; }}
                 />
             </div>
-            <pre>this.state = {JSON.stringify(this.state, null, '\t')}</pre>
+            {/*
+                <pre>this.state = {JSON.stringify(this.state, null, '\t')}</pre>
+            */}
             </React.Fragment>
         )
     }
@@ -100,27 +87,32 @@ export default class OrbitView extends React.Component {
         let delta = timestamp - this.lastTimestamp;
         this.lastTimestamp = timestamp;
         if (this.props.controls.isAnimationEnabled === true) {
-            this.updateAll(delta);
+            this.updateAllAnimatedObjects(delta);
         }
-        this.setState({
-            timestamp,
-            delta,
-            sunTheta: this.sunTheta
-        });
+        this.updateAllOverlayObjects(delta);
         window.requestAnimationFrame(this.animationFrameLoop);
     }
 
     updateAll(delta) {
+        this.updateAllAnimatedObjects(delta);
+        this.updateAllOverlayObjects(delta);
+    }
+
+    updateAllAnimatedObjects(delta) {
         this.updateSunTheta(delta);
         this.updateSun(delta);
-        this.updateEarthSunline();
+    }
+
+    updateAllOverlayObjects() {
+        this.updateEarthSunLine();
+        this.updateDeferent();
     }
 
     updateSunTheta(delta) {
-        let period = 5000;
+        let period = 1000;
         let deltaTheta = 2 * Math.PI * delta / period;
         this.sunTheta += deltaTheta * this.props.controls.animationRate;
-        this.sunTheta %= 2 * Math.PI;
+        // this.sunTheta %= 2 * Math.PI;
     }
 
     /**
@@ -154,7 +146,7 @@ export default class OrbitView extends React.Component {
     updateSun() {
         let theta = this.sunTheta;
         let x_p = 0.4 * Math.cos(theta) + 0.5;
-        let y_p = 0.4 * Math.sin(theta) + 0.5;
+        let y_p = -0.4 * Math.sin(theta) + 0.5;
         let x = this.sideLength * x_p;
         let y = this.sideLength * y_p;
         this.sunGraphic.clear();
@@ -164,15 +156,55 @@ export default class OrbitView extends React.Component {
         this.sunGraphic.endFill();
         this.sunGraphic.x = x;
         this.sunGraphic.y = y;
-        this.setState({ x, y, theta});
     }
 
-    updateEarthSunline() {
+    updateEarthSunLine() {
         this.earthSunLine.clear();
-        this.earthSunLine.lineStyle(1, 0xFFFFFF, 1);
+        if (this.props.controls.showEarthSunLine !== true) {
+            return;
+        }
+        this.earthSunLine.lineStyle(1, 0xFFFFFF);
         this.earthSunLine.moveTo(this.sideLength/2, this.sideLength/2);
         this.earthSunLine.lineTo(this.sunGraphic.x, this.sunGraphic.y);
     }
+
+    updateDeferent() {
+        this.deferent.clear();
+        let side = this.sideLength;
+        let ecc = this.props.planetaryParameters.eccentricity / 2;
+        let apogee = Math.PI * this.props.planetaryParameters.apogeeAngle / 180;
+        let sinAp = Math.sin(apogee);
+        let cosAp = Math.cos(apogee);
+        /* Draw Purple Circle */
+        let x_circ = (0.50 + ecc * cosAp / 2) * side;
+        let y_circ = (0.50 - ecc * sinAp / 2) * side;
+        let r_circ = 0.005 * side;
+        this.deferent.lineStyle(0);
+        this.deferent.beginFill(0x8455bd, 1);
+        this.deferent.drawCircle(x_circ, y_circ, r_circ);
+        this.deferent.endFill();
+        /* Draw Deferent Circle */
+        if (this.props.controls.showDeferent === true) {
+            this.deferent.lineStyle(1, 0xFFFFFF);
+            this.deferent.drawCircle(x_circ, y_circ, 0.15 * side);
+            this.deferent.endFill();
+        }
+        /* Draw Green Cross */
+        let x1_left  = (0.49 + ecc * cosAp) * side;
+        let x1_right = (0.51 + ecc * cosAp) * side;
+        let y_mid    = (0.50 - ecc * sinAp) * side;
+        let x_mid    = (0.50 + ecc * cosAp) * side;
+        let y2_bot   = (0.49 - ecc * sinAp) * side;
+        let y2_top   = (0.51 - ecc * sinAp) * side;
+        this.deferent.lineStyle(2, 0x00FF00);
+        this.deferent.moveTo(x1_left, y_mid);
+        this.deferent.lineTo(x1_right, y_mid);
+        this.deferent.moveTo(x_mid, y2_bot);
+        this.deferent.lineTo(x_mid, y2_top);
+        this.deferent.endFill();
+    }
+
+
 
     /**
      * The function that is called when the PIXI.JS canvas itself is resized.
