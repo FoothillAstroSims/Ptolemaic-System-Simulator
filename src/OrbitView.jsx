@@ -96,28 +96,27 @@ export default class OrbitView extends React.Component {
     animationFrameLoop(timestamp) {
         let delta = timestamp - this.lastTimestamp;
         this.lastTimestamp = timestamp;
-
-        this.updateSunTheta(delta);
-        this.updateSun(delta);
-        this.updateEarthSunline();
-
+        if (this.props.controls.isAnimationEnabled === true) {
+            this.updateAll(delta);
+        }
         this.setState({
             timestamp,
             delta,
             sunTheta: this.sunTheta
         });
-
         window.requestAnimationFrame(this.animationFrameLoop);
     }
 
-    /**
-     * The "sun theta"
-     */
+    updateAll(delta) {
+        this.updateSunTheta(delta);
+        this.updateSun(delta);
+        this.updateEarthSunline();
+    }
+
     updateSunTheta(delta) {
         let period = 5000;
-        let motionRate = this.props.planetaryParameters.motionRate;
         let deltaTheta = 2 * Math.PI * delta / period;
-        this.sunTheta += deltaTheta * motionRate;
+        this.sunTheta += deltaTheta * this.props.controls.animationRate;
         this.sunTheta %= 2 * Math.PI;
     }
 

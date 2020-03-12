@@ -2,6 +2,7 @@ import React from 'react';
 import { PlanetTypes } from './enums.jsx';
 import OrbitView from './OrbitView.jsx';
 import PlanetaryParameters from './PlanetaryParameters.jsx';
+import ControlsAndSettings from './ControlsAndSettings.jsx';
 
 export default class PtolemaicSystemSimulator extends React.Component {
     constructor(props) {
@@ -15,6 +16,7 @@ export default class PtolemaicSystemSimulator extends React.Component {
                 planetType: PlanetTypes.SUPERIOR,
             },
             controls: {
+                isAnimationEnabled: false,
                 animationRate: 0.2,
                 showDeferent: true,
                 showEpicycle: true,
@@ -43,6 +45,13 @@ export default class PtolemaicSystemSimulator extends React.Component {
                     </div>
 
                     <div className="box">
+                        <h2>Controls and Settings</h2>
+                        <ControlsAndSettings
+                            controls = {this.state.controls}
+                            onChange = {this.handleNewControlSettings.bind(this)} />
+                    </div>
+
+                    <div className="box">
                         <h2>Orbit View</h2>
                         <OrbitView
                             className = "OrbitView"
@@ -56,6 +65,10 @@ export default class PtolemaicSystemSimulator extends React.Component {
     }
 
     handleNewPlantearyParameters(newParams) {
-        this.setState({planetaryParameters: newParams});
+        this.setState({ planetaryParameters: newParams });
+    }
+
+    handleNewControlSettings(newSettings) {
+        this.setState({ controls: newSettings });
     }
 }
