@@ -1,7 +1,7 @@
 .wrapper{
     display: grid;
-    grid-template-columns: auto 25em;
-    width: calc(620px + 25em);
+    grid-template-columns: min-content 25em;
+    /* width: calc(620px + 25em); */
     /* width: 100%; */
 }
 .box {
@@ -13,6 +13,6 @@ canvas {
 }
 .OrbitView {
     /* position: absolute; */
-    overflow: hidden;
+    /* overflow: hidden; */
     border: 1px solid green;
 }

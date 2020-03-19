@@ -30,13 +30,12 @@ export default class PtolemaicSystemSimulator extends React.Component {
     }
 
     render() {
-        const debugStateString = JSON.stringify(this.state, null, '\t');
         return (
             <React.Fragment>
-
                 <h1>PtolemaicSystemSimulator</h1>
-                <pre>PtolemaicSystemSimulator.state = {debugStateString}</pre>
-
+                {/*
+                    <pre>PtolemaicSystemSimulator.state = {JSON.stringify(this.state, null, '\t')}</pre>
+                */}
                 <div className="wrapper">
                     <div className="box">
                         <OrbitView
