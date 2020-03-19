@@ -23,38 +23,30 @@ const planetPresets = {
         eccentricity: 0.05,
         motionRate: 0.08,
         apogeeAngle: 152.2,
+        planetType: PlanetTypes.SUPERIOR,
     },
     [planet.VENUS]: {
         epicycleSize: 0.72,
         eccentricity: 0.02,
         motionRate: 1.60,
         apogeeAngle: 46.2,
+        planetType: PlanetTypes.INFERIOR,
     },
     [planet.MARS]: {
         epicycleSize: 0.66,
         eccentricity: 0.10,
         motionRate: 0.52,
         apogeeAngle: 106.7,
+        planetType: PlanetTypes.SUPERIOR,
     },
     [planet.SATURN]: {
         epicycleSize: 0.11,
         eccentricity: 0.06,
         motionRate: 0.03,
         apogeeAngle: 224.2,
+        planetType: PlanetTypes.SUPERIOR,
     }
 }
-
-
-// This is another way to hold the data.
-// But the disadvantage is that its less simple to access.
-//
-// const planetPresetDataArray = [
-//     ['Jupiter', 0.19, 0.05, 0.08, 152.2],
-//     ['Venus',   0.72, 0.02, 1.60,  46.2],
-//     ['Mars',    0.66, 0.10, 0.52, 106.7],
-//     ['Saturn',  0.11, 0.06, 0.03, 224.2],
-// ]
-
 
 
 /**
@@ -67,20 +59,15 @@ export default class PlanetaryParameters extends React.Component {
         this.handlePresetSelection = this.handlePresetSelection.bind(this);
         this.handleSingleVariableChange = this.handleSingleVariableChange.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.state = {
-            epicycleSize: 0.66,
-            eccentricity: 0.10,
-            motionRate: 0.52,
-            apogeeAngle: 106.7,
-            planetType: PlanetTypes.SUPERIOR,
-        }
     }
 
     render() {
         return (
             <React.Fragment>
                 <h2> Planetary Parameters</h2>
-                <PlanetPresetSelection onSubmit={this.handlePresetSelection} />
+                <PlanetPresetSelection
+                    onSubmit={this.handlePresetSelection}
+                />
                 <br/>
                 <fieldset>
                 <legend>Parameters</legend>
@@ -91,7 +78,7 @@ export default class PlanetaryParameters extends React.Component {
                     max={1}
                     step={0.01}
                     decimals={2}
-                    value={this.state.epicycleSize}
+                    value={this.props.params.epicycleSize}
                     onChange={this.handleSingleVariableChange}
                 />
                 <br/>
@@ -102,7 +89,7 @@ export default class PlanetaryParameters extends React.Component {
                     max={0.20}
                     step={0.01}
                     decimals={2}
-                    value={this.state.eccentricity}
+                    value={this.props.params.eccentricity}
                     onChange={this.handleSingleVariableChange}
                 />
                 <br/>
@@ -113,7 +100,7 @@ export default class PlanetaryParameters extends React.Component {
                     max={4.50}
                     step={0.05}
                     decimals={2}
-                    value={this.state.motionRate}
+                    value={this.props.params.motionRate}
                     onChange={this.handleSingleVariableChange}
                 />
                 <br/>
@@ -124,7 +111,7 @@ export default class PlanetaryParameters extends React.Component {
                     max={360.0}
                     step={3.6}
                     decimals={1}
-                    value={this.state.apogeeAngle}
+                    value={this.props.params.apogeeAngle}
                     onChange={this.handleSingleVariableChange}
                 />
                 </fieldset>
@@ -137,6 +124,7 @@ export default class PlanetaryParameters extends React.Component {
                         name="planetType"
                         id="planetTypeRadio1"
                         value={PlanetTypes.SUPERIOR}
+                        checked={this.props.params.planetType === PlanetTypes.SUPERIOR}
                         onChange={this.handleRadioBoxes.bind(this)}
                     />
                     <br/>
@@ -146,6 +134,7 @@ export default class PlanetaryParameters extends React.Component {
                         name="planetType"
                         id="planetTypeRadio2"
                         value={PlanetTypes.INFERIOR}
+                        checked={this.props.params.planetType === PlanetTypes.INFERIOR}
                         onChange={this.handleRadioBoxes.bind(this)}
                     />
                 </fieldset>
@@ -154,34 +143,38 @@ export default class PlanetaryParameters extends React.Component {
     }
 
     handlePresetSelection(planetName) {
-        let params = planetPresets[planet[planetName]];
-        if (params !== undefined) {
-            let nextState = {...this.state, ...params};
-            this.handleChange(nextState);
-            this.setState(nextState);
-        }
+        let newParams = planetPresets[planet[planetName]];
+        this.props.onChange(newParams);
     }
 
-    handleChange(params) {
-        this.props.onChange(params);
+    handleChange(newParams) {
+        this.props.onChange(newParams);
     }
 
     handleSingleVariableChange(key, value) {
-        let partialState = {[key]: value};
-        this.handleChange({...this.state, ...partialState});
-        this.setState(partialState);
+        this.props.onChange({
+            ...this.props.params,
+            [key]: value
+        });
     }
 
     handleRadioBoxes(event) {
-        this.handleChange({
-            ...this.state,
+        this.props.onChange({
+            ...this.props.params,
             [event.target.name]: Number.parseInt(event.target.value)
         });
     }
 }
 
 PlanetaryParameters.propTypes = {
-    onChange: PropTypes.func,
+    onChange: PropTypes.func.isRequired,
+    params: PropTypes.exact({
+        epicycleSize:           PropTypes.number.isRequired,
+        eccentricity:           PropTypes.number.isRequired,
+        motionRate:             PropTypes.number.isRequired,
+        apogeeAngle:            PropTypes.number.isRequired,
+        planetType:             PropTypes.number.isRequired,
+    }).isRequired,
 }
 
 
@@ -196,7 +189,7 @@ class PlanetPresetSelection extends React.Component {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.state = { value: 'none' }
+        this.state = { value: 'MARS' }
     }
 
     handleChange(event) {
@@ -220,8 +213,7 @@ class PlanetPresetSelection extends React.Component {
             <form onSubmit={this.handleSubmit}>
                 <label>
                     PRESETS:
-                    <select onChange={this.handleChange}>
-                        <option value="none">Select Planet</option>
+                    <select value={this.state.value} onChange={this.handleChange}>
                         {planetOptionList}
                     </select>
                 </label>

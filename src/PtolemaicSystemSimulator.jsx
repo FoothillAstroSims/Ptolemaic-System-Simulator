@@ -47,6 +47,7 @@ export default class PtolemaicSystemSimulator extends React.Component {
                     </div>
                     <div className="box">
                         <PlanetaryParameters
+                            params={this.state.planetaryParameters}
                             onChange={this.handleNewPlantearyParameters.bind(this)}
                         />
                         <ControlsAndSettings
