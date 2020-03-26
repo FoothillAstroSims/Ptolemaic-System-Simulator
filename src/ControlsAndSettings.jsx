@@ -47,6 +47,7 @@ export default class ControlsAndSettings extends React.Component {
                 {CheckBox("showEquantVector", "Show Equant Vector")}
                 {CheckBox("showEarthSunLine", "Show Earth-Sun Line")}
                 {CheckBox("showEpicyclePlanetLine", "Show Epicycle Planet Line")}
+                {CheckBox("showEccentricDeferentLine", "Show Eccentric-Deferent Line")}
                 <label htmlFor="pathDuration">Path Duration</label>
                 <input
                     name="pathDuration"
@@ -85,15 +86,16 @@ export default class ControlsAndSettings extends React.Component {
 
 ControlsAndSettings.propTypes = {
     controls: PropTypes.exact({
-        isAnimationEnabled:     PropTypes.bool.isRequired,
-        animationRate:          PropTypes.number.isRequired,
-        showDeferent:           PropTypes.bool.isRequired,
-        showEpicycle:           PropTypes.bool.isRequired,
-        showPlanetVector:       PropTypes.bool.isRequired,
-        showEquantVector:       PropTypes.bool.isRequired,
-        showEarthSunLine:       PropTypes.bool.isRequired,
-        showEpicyclePlanetLine: PropTypes.bool.isRequired,
-        pathDuration:           PropTypes.number.isRequired
+        isAnimationEnabled:        PropTypes.bool.isRequired,
+        animationRate:             PropTypes.number.isRequired,
+        showDeferent:              PropTypes.bool.isRequired,
+        showEpicycle:              PropTypes.bool.isRequired,
+        showPlanetVector:          PropTypes.bool.isRequired,
+        showEquantVector:          PropTypes.bool.isRequired,
+        showEarthSunLine:          PropTypes.bool.isRequired,
+        showEpicyclePlanetLine:    PropTypes.bool.isRequired,
+        showEccentricDeferentLine: PropTypes.bool.isRequired,
+        pathDuration:              PropTypes.number.isRequired
     }).isRequired,
     onChange: PropTypes.func.isRequired
 }

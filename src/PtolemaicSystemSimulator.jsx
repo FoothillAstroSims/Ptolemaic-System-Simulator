@@ -24,6 +24,7 @@ export default class PtolemaicSystemSimulator extends React.Component {
                 showEquantVector: false,
                 showEarthSunLine: false,
                 showEpicyclePlanetLine: false,
+                showEccentricDeferentLine: false,
                 pathDuration: 0.2
             }
         }

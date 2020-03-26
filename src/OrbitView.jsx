@@ -267,7 +267,7 @@ export default class OrbitView extends React.Component {
     }
 
     updateEpicycle() {
-        /* Draw Epicycle */
+        /* Preliminary Calculations */
         let deferentRadius = this.getDeferentRadius();
         let equantAngle = this.equantToEpicycleCenterAngularPosition;
         let alpha  =  equantAngle - Math.asin(this.props.planetaryParameters.eccentricity * Math.sin(equantAngle));
@@ -275,22 +275,26 @@ export default class OrbitView extends React.Component {
         let x = this.eccentricPosition[0] + deferentRadius * Math.sin(alpha + apogee + Math.PI/2);
         let y = this.eccentricPosition[1] + deferentRadius * Math.cos(alpha + apogee + Math.PI/2);
         let r = this.props.planetaryParameters.epicycleSize * 0.1 * this.sideLength;
+        /* Begin Drawings */
         this.epicycle.clear();
+        /* Draw Epicycle */
         if (this.props.controls.showEpicycle === true) {
             this.epicycle.lineStyle(2, 0xFFFFFF);
             this.epicycle.drawCircle(x, y, r);
             this.epicycle.endFill();
         }
         if (this.props.controls.showEquantVector === true) {
+            this.epicycle.lineStyle(2, 0xFFFFFF);
             this.epicycle.moveTo(this.equantPosition[0], this.equantPosition[1]);
             this.epicycle.lineTo(x, y);
             this.epicycle.endFill();
         }
-        /* DEFERENT VECTOR */
-        this.epicycle.lineStyle(2, 0x9ca2ff);
-        this.epicycle.moveTo(this.eccentricPosition[0], this.eccentricPosition[1]);
-        this.epicycle.lineTo(x, y);
-        this.epicycle.endFill();
+        if (this.props.controls.showEccentricDeferentLine === true) {
+            this.epicycle.lineStyle(2, 0x9ca2ff);
+            this.epicycle.moveTo(this.eccentricPosition[0], this.eccentricPosition[1]);
+            this.epicycle.lineTo(x, y);
+            this.epicycle.endFill();
+        }
         /* Draw Planet */
         let x_planet = x + r * Math.sin(this.planetAngularPosition + Math.PI/2);
         let y_planet = y + r * Math.cos(this.planetAngularPosition + Math.PI/2);
@@ -351,14 +355,15 @@ OrbitView.propTypes = {
         planetType:             PropTypes.number.isRequired,
     }).isRequired,
     controls: PropTypes.exact({
-        isAnimationEnabled:     PropTypes.bool.isRequired,
-        animationRate:          PropTypes.number.isRequired,
-        showDeferent:           PropTypes.bool.isRequired,
-        showEpicycle:           PropTypes.bool.isRequired,
-        showPlanetVector:       PropTypes.bool.isRequired,
-        showEquantVector:       PropTypes.bool.isRequired,
-        showEarthSunLine:       PropTypes.bool.isRequired,
-        showEpicyclePlanetLine: PropTypes.bool.isRequired,
-        pathDuration:           PropTypes.number.isRequired
-    }).isRequired
+        isAnimationEnabled:        PropTypes.bool.isRequired,
+        animationRate:             PropTypes.number.isRequired,
+        showDeferent:              PropTypes.bool.isRequired,
+        showEpicycle:              PropTypes.bool.isRequired,
+        showPlanetVector:          PropTypes.bool.isRequired,
+        showEquantVector:          PropTypes.bool.isRequired,
+        showEarthSunLine:          PropTypes.bool.isRequired,
+        showEpicyclePlanetLine:    PropTypes.bool.isRequired,
+        showEccentricDeferentLine: PropTypes.bool.isRequired,
+        pathDuration:              PropTypes.number.isRequired
+    }).isRequired,
 }

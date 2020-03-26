@@ -36,7 +36,7 @@ export default class NumberInputField extends React.Component {
                     name="numberInput"
                     min={this.props.min}
                     max={this.props.max}
-                    step={this.props.step}
+                    step={Math.pow(10, -this.props.decimals)}
                     onChange={this.handleChange.bind(this)}
                     onFocus={this.handleFocus.bind(this)}
                     onBlur={this.handleBlur.bind(this)}
