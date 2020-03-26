@@ -68,7 +68,7 @@ export default class OrbitView extends React.Component {
          * the current angular position of the epicycle-center.
          * The epicycle-center rotates around the equant.
          */
-        this.epicycleAngularPosition = 0;
+        this.equantToEpicycleCenterAngularPosition = 0;
 
         /**
          * The current Angular Position of the planet around the epicycle.
@@ -76,10 +76,11 @@ export default class OrbitView extends React.Component {
         this.planetAngularPosition = 0;
 
         /*
-        TODO: FIX. THIS IS A HACK. It's sphaghetti code.
-        updateDeferent() function will update these variables.
-        updateEpicycle() function is DEPENDENT on these variables.
+        Deferent and Equant positions are set by physicsUpdate(),
+        and the other update() functions make use of these variables to
+        draw locations of everything else.
         */
+
         this.deferentPosition = [0,0];
         this.equantPosition = [0,0];
     }
@@ -92,6 +93,8 @@ export default class OrbitView extends React.Component {
             height: this.sideLength,
             // autoResize: true,
         });
+        this.app.renderer.plugins.interaction.autoPreventDefault = false;
+        this.app.renderer.view.style['touch-action'] = 'auto';
         // window.addEventListener('resize', this.onResize.bind(this));
         this.pixiElement.appendChild(this.app.view);
         // this.app.stage.interactive = true;
@@ -147,6 +150,10 @@ export default class OrbitView extends React.Component {
         this.updateEpicycle(delta);
     }
 
+    /**
+     * PhysicsUpdate is where the most important variables are updated.
+     * Those variables are used by the other "update" functions.
+     */
     physicsUpdate(delta) {
         /* Update Sun's Angular Position */
         let period = 1000;
@@ -154,11 +161,11 @@ export default class OrbitView extends React.Component {
         this.sunAngularPosition += deltaTheta;
         /* Update and Epicycle and Planet Angular Position */
         if (this.props.planetaryParameters.planetType === PlanetTypes.SUPERIOR) {
-            this.epicycleAngularPosition += this.props.planetaryParameters.motionRate * deltaTheta;
+            this.equantToEpicycleCenterAngularPosition += this.props.planetaryParameters.motionRate * deltaTheta;
             this.planetAngularPosition = this.sunAngularPosition;
         } else {
             this.planetAngularPosition += this.props.planetaryParameters.motionRate * deltaTheta;
-            this.epicycleAngularPosition = this.sunAngularPosition;
+            this.equantToEpicycleCenterAngularPosition = this.sunAngularPosition;
         }
     }
 
@@ -193,8 +200,8 @@ export default class OrbitView extends React.Component {
 
     updateSun() {
         let theta = this.sunAngularPosition;
-        let x_p = 0.4 * Math.cos(theta) + 0.5;
-        let y_p = -0.4 * Math.sin(theta) + 0.5;
+        let x_p = 0.45 * Math.cos(theta) + 0.5;
+        let y_p = -0.45 * Math.sin(theta) + 0.5;
         let x = this.sideLength * x_p;
         let y = this.sideLength * y_p;
         this.sunGraphic.clear();
@@ -234,7 +241,7 @@ export default class OrbitView extends React.Component {
         /* Draw Deferent Circle */
         if (this.props.controls.showDeferent === true) {
             this.deferent.lineStyle(2, 0xFFFFFF);
-            this.deferent.drawCircle(x_circ, y_circ, 0.15 * side);
+            this.deferent.drawCircle(x_circ, y_circ, this.getDeferentRadius());
             this.deferent.endFill();
         }
         /* Draw Green Cross */
@@ -262,8 +269,11 @@ export default class OrbitView extends React.Component {
     updateEpicycle() {
         /* Draw Epicycle */
         let deferentRadius = this.getDeferentRadius();
-        let x = this.eccentricPosition[0] + deferentRadius * Math.sin(this.epicycleAngularPosition);
-        let y = this.eccentricPosition[1] + deferentRadius * Math.cos(this.epicycleAngularPosition);
+        let equantAngle = this.equantToEpicycleCenterAngularPosition;
+        let alpha  =  equantAngle - Math.asin(this.props.planetaryParameters.eccentricity * Math.sin(equantAngle));
+        let apogee = Math.PI * this.props.planetaryParameters.apogeeAngle / 180;
+        let x = this.eccentricPosition[0] + deferentRadius * Math.sin(alpha + apogee + Math.PI/2);
+        let y = this.eccentricPosition[1] + deferentRadius * Math.cos(alpha + apogee + Math.PI/2);
         let r = this.props.planetaryParameters.epicycleSize * 0.1 * this.sideLength;
         this.epicycle.clear();
         if (this.props.controls.showEpicycle === true) {
@@ -307,7 +317,7 @@ export default class OrbitView extends React.Component {
 
     getDeferentRadius() {
         /* TODO: Remove Dependency on side length inside this func. */
-        return 0.15 * this.sideLength;
+        return 0.2 * this.sideLength;
     }
 
     /**

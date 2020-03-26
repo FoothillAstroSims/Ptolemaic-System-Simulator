@@ -86,7 +86,7 @@ export default class PlanetaryParameters extends React.Component {
                     name="eccentricity"
                     displayName="Eccentricity"
                     min={0.00}
-                    max={0.20}
+                    max={0.50}
                     step={0.01}
                     decimals={2}
                     value={this.props.params.eccentricity}
