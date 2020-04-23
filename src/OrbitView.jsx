@@ -4,31 +4,6 @@ import * as PIXI from 'pixi.js'
 import { PlanetTypes } from './enums.jsx';
 
 /**
- * Angles will start with 0 degrees, corresponding to the EAST direction
- * if you imagine a compass on the screen.  As radians/degrees increase,
- * the angle will move in the counterclockwise direction.
- *
- * If the term "x-axis" appears in the comments, assume that it is referring
- * to the horizontal line that passes through the central "earth" point.
- */
-
-
-/*
-TODO: Rename Stuff:
-    Equant : Green Cross
-    Eccentric : Purple Circle
-
-TODO: PhysicsUpdate:
-    Should ideally use fixed step instead of delta-timestep, because
-    otherwise things can get weird.
-
-TODO: Remove Code Duplication
-    You added some lazy code duplication to retrieve the equant position.
-    Fix it pls.
-*/
-
-
-/**
  * OrbitView is the main graphic container that displays the animations.
  * The only interface it has is the draggable sun, which affects both the
  * animation and the ZodiacStrip.
@@ -51,38 +26,25 @@ export default class OrbitView extends React.Component {
         this.app = null;
 
         this.earthGraphic = this.newEarthGraphic();
+        this.equantGraphic = this.newEquantGraphic();
+        this.eccentricGraphic = this.newEccentricGraphic();
         this.sunGraphic = this.newSunGraphic();
-        this.earthSunLine = new PIXI.Graphics();
-        this.deferent = new PIXI.Graphics();
+        this.planetGraphic = this.newPlanetGraphic();
+        this.overlay = new PIXI.Graphics();
         this.epicycle = new PIXI.Graphics();
 
-        this.lastTimestamp = 0;
-        this.lastTheta = 0;
-
         /**
-         * the angular position of the sun, which rotates around the earth.
-         */
-        this.sunAngularPosition = 0;
-
-        /**
-         * the current angular position of the epicycle-center.
-         * The epicycle-center rotates around the equant.
-         */
-        this.equantToEpicycleCenterAngularPosition = 0;
-
-        /**
-         * The current Angular Position of the planet around the epicycle.
-         */
-        this.planetAngularPosition = 0;
-
-        /*
-        Deferent and Equant positions are set by physicsUpdate(),
-        and the other update() functions make use of these variables to
-        draw locations of everything else.
+         *  Current Time (in Simulation units: Earth Years).
+         *  It is Incremented with every frame. It only increases.
         */
+        this.currentTime = 0;
 
-        this.deferentPosition = [0,0];
-        this.equantPosition = [0,0];
+        /**
+         * lastTimestamp is used by animationFrameLoop function to keep track
+         * of how much time passes in between each frame.  Used to calculate
+         * delta time.
+         */
+        this.lastTimestamp = 0;
     }
 
     componentDidMount() {
@@ -98,10 +60,12 @@ export default class OrbitView extends React.Component {
         // window.addEventListener('resize', this.onResize.bind(this));
         this.pixiElement.appendChild(this.app.view);
         // this.app.stage.interactive = true;
+        this.app.stage.addChild(this.overlay);
         this.app.stage.addChild(this.earthGraphic);
         this.app.stage.addChild(this.sunGraphic);
-        this.app.stage.addChild(this.deferent);
-        this.app.stage.addChild(this.earthSunLine);
+        this.app.stage.addChild(this.equantGraphic);
+        this.app.stage.addChild(this.eccentricGraphic);
+        this.app.stage.addChild(this.planetGraphic);
         this.app.stage.addChild(this.epicycle);
         this.updateAll(0); // initial update.
         this.animationFrameIdentifier = window.requestAnimationFrame(this.animationFrameLoop);
@@ -116,9 +80,9 @@ export default class OrbitView extends React.Component {
                     ref={(thisDiv) => { this.pixiElement = thisDiv; }}
                 />
             </div>
-            {/*
+
             <pre>{JSON.stringify(this.state, null, '\t')}</pre>
-            */}
+
             </React.Fragment>
         )
     }
@@ -131,23 +95,38 @@ export default class OrbitView extends React.Component {
     animationFrameLoop(timestamp) {
         let delta = timestamp - this.lastTimestamp;
         this.lastTimestamp = timestamp;
-        if (this.props.controls.isAnimationEnabled === true) {
-            this.physicsUpdate(delta);
-        }
+        this.physicsUpdate(delta);
         this.update(delta);
         window.requestAnimationFrame(this.animationFrameLoop);
     }
 
     updateAll(delta) {
         this.physicsUpdate(delta);
-        this.update(delta);
+        this.update();
     }
 
-    update(delta) {
-        this.updateSun(delta);
-        this.updateEarthSunLine();
-        this.updateDeferent();
-        this.updateEpicycle(delta);
+    update() {
+        this.updateSun();
+        this.updateEquant();
+        this.updateEccentric();
+        this.updatePlanet();
+        this.updateOverlay();
+    }
+
+    /**
+     * Converts x-coordinates from the graph in (-3, 3), to the pixel
+     * coordinates that can be drawn on the canvas.
+     */
+    xUnitsToPixels(x) {
+        return (x + 3) * this.sideLength / 6;
+    }
+
+    /**
+     * Converts y-coordinates from the graph in (-3, 3), to the pixel
+     * coordinates that can be drawn on the canvas.
+     */
+    yUnitsToPixels(y) {
+        return -(y - 3) * this.sideLength / 6;
     }
 
     /**
@@ -155,28 +134,85 @@ export default class OrbitView extends React.Component {
      * Those variables are used by the other "update" functions.
      */
     physicsUpdate(delta) {
-        /* Update Sun's Angular Position */
-        let period = 1000;
-        let deltaTheta = 2 * Math.PI * delta * this.props.controls.animationRate / period;
-        this.sunAngularPosition += deltaTheta;
-        /* Update and Epicycle and Planet Angular Position */
-        if (this.props.planetaryParameters.planetType === PlanetTypes.SUPERIOR) {
-            this.equantToEpicycleCenterAngularPosition += this.props.planetaryParameters.motionRate * deltaTheta;
-            this.planetAngularPosition = this.sunAngularPosition;
-        } else {
-            this.planetAngularPosition += this.props.planetaryParameters.motionRate * deltaTheta;
-            this.equantToEpicycleCenterAngularPosition = this.sunAngularPosition;
+
+        /* Increment Time if Animation is On */
+        if (this.props.controls.isAnimationEnabled === true) {
+            this.currentTime += delta * this.props.controls.animationRate / 1000;
         }
+        let t = this.currentTime;
+
+        /* Alias Variables for Planetary Params */
+        let ecc = this.props.planetaryParameters.eccentricity;
+        let apogee = this.props.planetaryParameters.apogeeAngle;
+        let motionRate = this.props.planetaryParameters.motionRate;
+        let planetType = this.props.planetaryParameters.planetType;
+        let R_e = this.props.planetaryParameters.epicycleSize;
+        let R = 1;
+
+        /* Toggle Planet Type */
+        let epicycleRate = 1;
+        let deferentRate = 1;
+        if (planetType === PlanetTypes.SUPERIOR) {
+            deferentRate = motionRate;
+        } else {
+            epicycleRate = motionRate;
+        }
+
+        /* Calculate Deferent Angle */
+        let omega = 2 * Math.PI * deferentRate;
+        let deferentAngle = omega * t;
+
+        /* Calculate Distance from Equant to Epicycle Center */
+        let a = 1;
+        let b = -2 * ecc * Math.cos(Math.PI - apogee * Math.PI / 180 + deferentAngle);
+        let c = Math.pow(ecc, 2) - Math.pow(R, 2);
+        let discriminant = Math.pow(b, 2) - 4 * a * c;
+        let R_equant_epicycle = (-1 * b + Math.sqrt(discriminant)) / (2 * a);
+
+        /* Calculate Equant Position */
+        this.x_equant = 2 * ecc * Math.cos(apogee * Math.PI / 180);
+        this.y_equant = 2 * ecc * Math.sin(apogee * Math.PI / 180);
+
+        /* Calculate Deferent-Center Position */
+        this.x_center = ecc * Math.cos(apogee * Math.PI / 180);
+        this.y_center = ecc * Math.sin(apogee * Math.PI / 180);
+
+        /* Calculate Deferent Position */
+        this.x_deferent = R_equant_epicycle * Math.cos(deferentAngle);
+        this.y_deferent = R_equant_epicycle * Math.sin(deferentAngle);
+
+        /* Calculate Motion Around Epicycle */
+        this.x_epicycle = R_e * Math.cos(2 * Math.PI * epicycleRate * t);
+        this.y_epicycle = R_e * Math.sin(2 * Math.PI * epicycleRate * t);
+
+        /* Calculate Planet */
+        this.x_planet = this.x_equant + this.x_deferent + this.x_epicycle;
+        this.y_planet = this.y_equant + this.y_deferent + this.y_epicycle;
+        this.ecliptic_longitude = Math.atan2(this.y_planet, this.x_planet) * 180 / Math.PI;
+
+        /* Calculate Sun */
+        this.x_sun = 3 * R * Math.cos(2 * Math.PI * t);
+        this.y_sun = 3 * R * Math.sin(2 * Math.PI * t);
+        this.sun_longitude = Math.atan2(this.y_sun, this.x_sun) * 180 / Math.PI;
+
+        /* For Debugging Purposes */
+        this.setState({
+            t: t,
+            x_equant: this.x_equant,
+            y_equant: this.y_equant,
+            x_center: this.x_center,
+            y_center: this.y_center,
+            x_deferent: this.x_deferent,
+            y_deferent: this.y_deferent,
+            x_planet: this.x_planet,
+            y_planet: this.y_planet,
+            ecliptic_longitude: this.ecliptic_longitude,
+            x_sun: this.x_sun,
+            y_sun: this.y_sun,
+            sun_longitude: this.sun_longitude,
+        })
     }
 
-
-    /**
-     * Creates the Earth Graphic that is placed at the center of the screen.
-     * This is a static drawing that never changes position throughout the
-     * entire animation.  (In the Ptolemaic Model, Earth is the center of
-     * the Universe).
-     * @return {PIXI.Graphics}
-     */
     newEarthGraphic() {
         const g = new PIXI.Graphics();
         g.lineStyle(2, 0xFFFFFF, 1);
@@ -191,137 +227,144 @@ export default class OrbitView extends React.Component {
 
     newSunGraphic() {
         const g = new PIXI.Graphics();
+        g.clear();
         g.lineStyle(2, 0xFFFFFF, 1);
         g.beginFill(0xf5c242, 1);
-        g.drawCircle(0, 0, this.sideLength / 50);
+        g.drawCircle(0, 0, this.sideLength / 60);
         g.endFill();
         return g;
     }
 
     updateSun() {
-        let theta = this.sunAngularPosition;
-        let x_p = 0.45 * Math.cos(theta) + 0.5;
-        let y_p = -0.45 * Math.sin(theta) + 0.5;
-        let x = this.sideLength * x_p;
-        let y = this.sideLength * y_p;
-        this.sunGraphic.clear();
-        this.sunGraphic.lineStyle(2, 0xFFFFFF, 1);
-        this.sunGraphic.beginFill(0xf5c242, 1);
-        this.sunGraphic.drawCircle(0, 0, this.sideLength / 60);
-        this.sunGraphic.endFill();
-        this.sunGraphic.x = x;
-        this.sunGraphic.y = y;
-    }
-
-    updateEarthSunLine() {
-        this.earthSunLine.clear();
-        if (this.props.controls.showEarthSunLine !== true) {
-            return;
-        }
-        this.earthSunLine.lineStyle(2, 0xFFFFFF);
-        this.earthSunLine.moveTo(this.sideLength/2, this.sideLength/2);
-        this.earthSunLine.lineTo(this.sunGraphic.x, this.sunGraphic.y);
-    }
-
-    updateDeferent() {
-        this.deferent.clear();
-        let side = this.sideLength;
-        let ecc = this.props.planetaryParameters.eccentricity / 2;
-        let apogee = Math.PI * this.props.planetaryParameters.apogeeAngle / 180;
-        let sinAp = Math.sin(apogee);
-        let cosAp = Math.cos(apogee);
-        /* Draw Purple Circle */
-        let x_circ = (0.50 + ecc * cosAp / 2) * side;
-        let y_circ = (0.50 - ecc * sinAp / 2) * side;
-        let r_circ = 0.005 * side;
-        this.deferent.lineStyle(0);
-        this.deferent.beginFill(0x8455bd, 1);
-        this.deferent.drawCircle(x_circ, y_circ, r_circ);
-        this.deferent.endFill();
-        /* Draw Deferent Circle */
-        if (this.props.controls.showDeferent === true) {
-            this.deferent.lineStyle(2, 0xFFFFFF);
-            this.deferent.drawCircle(x_circ, y_circ, this.getDeferentRadius());
-            this.deferent.endFill();
-        }
-        /* Draw Green Cross */
-        let x1_left  = (0.49 + ecc * cosAp) * side;
-        let x1_right = (0.51 + ecc * cosAp) * side;
-        let y_mid    = (0.50 - ecc * sinAp) * side;
-        let x_mid    = (0.50 + ecc * cosAp) * side;
-        let y2_bot   = (0.49 - ecc * sinAp) * side;
-        let y2_top   = (0.51 - ecc * sinAp) * side;
-        this.deferent.lineStyle(3, 0x00FF00);
-        this.deferent.moveTo(x1_left, y_mid);
-        this.deferent.lineTo(x1_right, y_mid);
-        this.deferent.moveTo(x_mid, y2_bot);
-        this.deferent.lineTo(x_mid, y2_top);
-        this.deferent.endFill();
-        /* Hacks and Debugs */
-        this.eccentricPosition = [x_circ, y_circ];
-        this.equantPosition = [x_mid, y_mid];
+        this.sunGraphic.x = this.xUnitsToPixels(this.x_sun);
+        this.sunGraphic.y = this.yUnitsToPixels(this.y_sun);
         this.setState({
-            eccentricPosition: this.eccentricPosition,
-            equantPosition: this.equantPosition,
+            pix_x_sun: this.sunGraphic.x,
+            pix_y_sun: this.sunGraphic.y,
+        })
+    }
+
+    newEquantGraphic() {
+        const g = new PIXI.Graphics();
+        let s = 0.01 * this.sideLength;
+        g.lineStyle(3, 0x00FF00);
+        g.moveTo(-s, 0);
+        g.lineTo(s, 0);
+        g.moveTo(0, -s);
+        g.lineTo(0, s);
+        g.endFill();
+        return g;
+    }
+
+    updateEquant() {
+        this.equantGraphic.x = this.xUnitsToPixels(this.x_equant);
+        this.equantGraphic.y = this.yUnitsToPixels(this.y_equant);
+        this.setState({
+            pix_x_equant: this.equantGraphic.x,
+            pix_y_equant: this.equantGraphic.y,
         });
     }
 
-    updateEpicycle() {
-        /* Preliminary Calculations */
-        let deferentRadius = this.getDeferentRadius();
-        let equantAngle = this.equantToEpicycleCenterAngularPosition;
-        let alpha  =  equantAngle - Math.asin(this.props.planetaryParameters.eccentricity * Math.sin(equantAngle));
-        let apogee = Math.PI * this.props.planetaryParameters.apogeeAngle / 180;
-        let x = this.eccentricPosition[0] + deferentRadius * Math.sin(alpha + apogee + Math.PI/2);
-        let y = this.eccentricPosition[1] + deferentRadius * Math.cos(alpha + apogee + Math.PI/2);
-        let r = this.props.planetaryParameters.epicycleSize * 0.1 * this.sideLength;
-        /* Begin Drawings */
-        this.epicycle.clear();
-        /* Draw Epicycle */
-        if (this.props.controls.showEpicycle === true) {
-            this.epicycle.lineStyle(2, 0xFFFFFF);
-            this.epicycle.drawCircle(x, y, r);
-            this.epicycle.endFill();
-        }
-        if (this.props.controls.showEquantVector === true) {
-            this.epicycle.lineStyle(2, 0xFFFFFF);
-            this.epicycle.moveTo(this.equantPosition[0], this.equantPosition[1]);
-            this.epicycle.lineTo(x, y);
-            this.epicycle.endFill();
-        }
-        if (this.props.controls.showEccentricDeferentLine === true) {
-            this.epicycle.lineStyle(2, 0x9ca2ff);
-            this.epicycle.moveTo(this.eccentricPosition[0], this.eccentricPosition[1]);
-            this.epicycle.lineTo(x, y);
-            this.epicycle.endFill();
-        }
-        /* Draw Planet */
-        let x_planet = x + r * Math.sin(this.planetAngularPosition + Math.PI/2);
-        let y_planet = y + r * Math.cos(this.planetAngularPosition + Math.PI/2);
-        let r_planet = 0.01 * this.sideLength;
-        this.epicycle.lineStyle(1, 0xFFFFFF);
-        this.epicycle.beginFill(0xEE0000, 1);
-        this.epicycle.drawCircle(x_planet, y_planet, r_planet);
-        this.epicycle.endFill();
-        /* Draw Planet Vector */
-        if (this.props.controls.showPlanetVector === true) {
-            this.epicycle.lineStyle(2, 0xFFAAAA);
-            this.epicycle.moveTo(this.sideLength/2, this.sideLength/2);
-            this.epicycle.lineTo(x_planet, y_planet);
-            this.epicycle.endFill();
-        }
-        /* Draw Epicycle-Planet Line */
-        if (this.props.controls.showEpicyclePlanetLine === true) {
-            this.epicycle.lineStyle(2, 0xFFFFFF);
-            this.epicycle.moveTo(x, y);
-            this.epicycle.lineTo(x_planet, y_planet);
-            this.epicycle.endFill();
-        }
+    newEccentricGraphic() {
+        const g = new PIXI.Graphics();
+        g.clear();
+        g.lineStyle(0);
+        g.beginFill(0x8455bd, 1);
+        g.drawCircle(0, 0, 0.005 * this.sideLength);
+        g.endFill();
+        return g;
     }
 
-    getDeferentRadius() {
-        /* TODO: Remove Dependency on side length inside this func. */
-        return 0.2 * this.sideLength;
+    updateEccentric() {
+        let x = this.xUnitsToPixels(this.x_center);
+        let y = this.yUnitsToPixels(this.y_center);
+        this.eccentricGraphic.x = x;
+        this.eccentricGraphic.y = y;
+    }
+
+    newPlanetGraphic() {
+        const g = new PIXI.Graphics();
+        g.lineStyle(2, 0xFFFFFF);
+        g.beginFill(0xEE0000, 1);
+        g.drawCircle(0, 0, 0.01 * this.sideLength);
+        g.endFill();
+        return g;
+    }
+
+    updatePlanet() {
+        this.planetGraphic.x = this.xUnitsToPixels(this.x_planet);
+        this.planetGraphic.y = this.yUnitsToPixels(this.y_planet);
+        this.setState({
+            pix_x_planet:this.xUnitsToPixels(this.x_planet),
+            pix_y_planet:this.yUnitsToPixels(this.y_planet),
+        })
+    }
+
+
+    updateOverlay() {
+        this.overlay.clear();
+        if (this.props.controls.showDeferent === true) {
+            let x = this.xUnitsToPixels(this.x_center);
+            let y = this.yUnitsToPixels(this.y_center);
+            let r = this.xUnitsToPixels(1) - this.xUnitsToPixels(0);
+            this.overlay.lineStyle(2, 0xFFFFFF);
+            this.overlay.drawCircle(x, y, r);
+            this.overlay.endFill();
+        }
+        if (this.props.controls.showEarthSunLine === true) {
+            this.overlay.lineStyle(2, 0xFFFFFF);
+            this.overlay.moveTo(this.sideLength/2, this.sideLength/2);
+            this.overlay.lineTo(this.sunGraphic.x, this.sunGraphic.y);
+        }
+        if (this.props.controls.showEquantVector === true) {
+            let x1 = this.xUnitsToPixels(this.x_equant);
+            let y1 = this.yUnitsToPixels(this.y_equant);
+            let x2 = this.xUnitsToPixels(this.x_deferent + this.x_equant);
+            let y2 = this.yUnitsToPixels(this.y_deferent + this.y_equant);
+            this.overlay.lineStyle(2, 0xFFFFFF);
+            this.overlay.moveTo(x1, y1);
+            this.overlay.lineTo(x2, y2);
+            this.overlay.endFill();
+        }
+        if (this.props.controls.showEpicycle === true) {
+            let epicycleSize = this.props.planetaryParameters.epicycleSize;
+            let x = this.xUnitsToPixels(this.x_equant + this.x_deferent);
+            let y = this.yUnitsToPixels(this.y_equant + this.y_deferent);
+            let r = this.xUnitsToPixels(epicycleSize) - this.xUnitsToPixels(0);
+            this.overlay.lineStyle(2, 0xFFFFFF);
+            this.overlay.drawCircle(x, y, r);
+            this.overlay.endFill();
+        }
+        if (this.props.controls.showEpicyclePlanetLine === true) {
+            let x1 = this.xUnitsToPixels(this.x_deferent + this.x_equant);
+            let y1 = this.yUnitsToPixels(this.y_deferent + this.y_equant);
+            let x2 = this.xUnitsToPixels(this.x_planet);
+            let y2 = this.yUnitsToPixels(this.y_planet);
+            this.overlay.lineStyle(2, 0xFFAAAA);
+            this.overlay.moveTo(x1, y1);
+            this.overlay.lineTo(x2, y2);
+            this.overlay.endFill();
+        }
+        if (this.props.controls.showEccentricDeferentLine === true) {
+            let x1 = this.xUnitsToPixels(this.x_center);
+            let y1 = this.yUnitsToPixels(this.y_center);
+            let x2 = this.xUnitsToPixels(this.x_deferent + this.x_equant);
+            let y2 = this.yUnitsToPixels(this.y_deferent + this.y_equant);
+            this.overlay.lineStyle(2, 0x9ca2ff);
+            this.overlay.moveTo(x1, y1);
+            this.overlay.lineTo(x2, y2);
+            this.overlay.endFill();
+        }
+        if (this.props.controls.showPlanetVector === true) {
+            let x1 = this.xUnitsToPixels(0);
+            let y1 = this.yUnitsToPixels(0);
+            let x2 = this.xUnitsToPixels(this.x_planet);
+            let y2 = this.yUnitsToPixels(this.y_planet);
+            this.overlay.lineStyle(2, 0xFFFFFF);
+            this.overlay.moveTo(x1, y1);
+            this.overlay.lineTo(x2, y2);
+            this.overlay.endFill();
+        }
     }
 
     /**
@@ -341,10 +384,6 @@ export default class OrbitView extends React.Component {
     //     });
     // }
 }
-
-
-
-
 
 OrbitView.propTypes = {
     planetaryParameters: PropTypes.exact({

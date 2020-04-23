@@ -9,16 +9,19 @@ export default class ControlsAndSettings extends React.Component {
     render() {
         let buttonValue = this.props.controls.isAnimationEnabled ? "Pause Animation" : "Start Animation";
         const CheckBox = (name, displayName) => {
+            let classNamePostfix = this.props.controls[name] ? `checked` : `unchecked`;
             return (
                 <div>
-                    <label htmlFor={name}>{displayName}</label>
-                    <input
-                        type="checkbox"
-                        name={name}
-                        id={name}
-                        checked={this.props.controls[name]}
-                        onChange={this.handleCheckbox.bind(this)}
-                    />
+                    <div className={`CheckboxWrap_${classNamePostfix}`}>
+                        <label htmlFor={name} className="CheckBoxLabel">{displayName}</label>
+                        <input
+                            type="checkbox"
+                            name={name}
+                            id={name}
+                            checked={this.props.controls[name]}
+                            onChange={this.handleCheckbox.bind(this)}
+                        />
+                    </div>
                 </div>
             );
         }

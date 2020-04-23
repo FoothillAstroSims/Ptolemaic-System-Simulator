@@ -16,3 +16,21 @@ canvas {
     /* overflow: hidden; */
     border: 1px solid green;
 }
+
+.CheckBoxLabel {
+}
+.CheckboxWrap_unchecked,
+.CheckboxWrap_checked {
+    user-select: none;
+    margin: 2px;
+    display: inline-block;
+}
+
+.CheckboxWrap_checked {
+    border: inset;
+    background: #e5e5e5;
+}
+.CheckboxWrap_unchecked {
+    border: outset;
+    background: #f5f5f5;
+}
