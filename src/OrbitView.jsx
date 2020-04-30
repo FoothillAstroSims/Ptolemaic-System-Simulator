@@ -4,6 +4,26 @@ import * as PIXI from 'pixi.js'
 import { PlanetTypes } from './enums.jsx';
 
 /**
+ * Data Table for each of the Constellations and the filepaths to their
+ * images.  Will be loaded into Sprites and displayed around the edges of
+ * the OrbitView.
+ */
+const CONSTELLATION_TABLE = [
+    [0, 'img/pisces.svg', 'Pisces'],
+    [Math.PI / 6, 'img/aries.svg', 'Aries'],
+    [Math.PI / 3, 'img/taurus.svg', 'Taurus'],
+    [Math.PI / 2, 'img/gemini.svg', 'Gemini'],
+    [2 * Math.PI / 3, 'img/cancer.svg', 'Cancer'],
+    [5 * Math.PI / 6, 'img/leo.svg', 'Leo'],
+    [Math.PI, 'img/virgo.svg', 'Virgo'],
+    [7 * Math.PI / 6, 'img/libra.svg', 'Libra'],
+    [4 * Math.PI / 3, 'img/scorpio.svg', 'Scorpio'],
+    [3 * Math.PI / 2, 'img/sagittarius.svg', 'Sagittarius'],
+    [5 * Math.PI / 3, 'img/capricorn.svg', 'Capricorn'],
+    [11 * Math.PI / 6, 'img/aquarius.svg', 'Aquarius']
+];
+
+/**
  * OrbitView is the main graphic container that displays the animations.
  * The only interface it has is the draggable sun, which affects both the
  * animation and the ZodiacStrip.
@@ -32,6 +52,7 @@ export default class OrbitView extends React.Component {
         this.planetGraphic = this.newPlanetGraphic();
         this.overlay = new PIXI.Graphics();
         this.epicycle = new PIXI.Graphics();
+        this.constellations = {};
 
         /**
          *  Current Time (in Simulation units: Earth Years).
@@ -50,7 +71,8 @@ export default class OrbitView extends React.Component {
     componentDidMount() {
         this.app = new PIXI.Application({
             antialias: true,
-            // resolution: window.devicePixelRatio || 1,
+            resolution: window.devicePixelRatio || 1,
+            autoDensity: true,
             width: this.sideLength,
             height: this.sideLength,
             // autoResize: true,
@@ -67,8 +89,25 @@ export default class OrbitView extends React.Component {
         this.app.stage.addChild(this.eccentricGraphic);
         this.app.stage.addChild(this.planetGraphic);
         this.app.stage.addChild(this.epicycle);
+        this.loadConstellations();
         this.updateAll(0); // initial update.
         this.animationFrameIdentifier = window.requestAnimationFrame(this.animationFrameLoop);
+    }
+
+    loadConstellations() {
+        for (let row of CONSTELLATION_TABLE) {
+            let angle = row[0];
+            let filepath = row[1];
+            // let name = row[2];
+            let sprite = PIXI.Sprite.from(filepath);
+            // this.constellations[name] = sprite;
+            this.app.stage.addChild(sprite);
+            sprite.width = this.sideLength * 0.08;
+            sprite.height = this.sideLength * 0.08;
+            sprite.anchor.set(0.5);
+            sprite.x = this.xUnitsToPixels(3.6 * Math.sin(angle));
+            sprite.y = this.yUnitsToPixels(3.6 * Math.cos(angle));
+        }
     }
 
     render() {
@@ -80,9 +119,9 @@ export default class OrbitView extends React.Component {
                     ref={(thisDiv) => { this.pixiElement = thisDiv; }}
                 />
             </div>
-
+            {/*
             <pre>{JSON.stringify(this.state, null, '\t')}</pre>
-
+            */}
             </React.Fragment>
         )
     }
@@ -118,7 +157,7 @@ export default class OrbitView extends React.Component {
      * coordinates that can be drawn on the canvas.
      */
     xUnitsToPixels(x) {
-        return (x + 3) * this.sideLength / 6;
+        return (x + 4) * this.sideLength / 8;
     }
 
     /**
@@ -126,7 +165,7 @@ export default class OrbitView extends React.Component {
      * coordinates that can be drawn on the canvas.
      */
     yUnitsToPixels(y) {
-        return -(y - 3) * this.sideLength / 6;
+        return -(y - 4) * this.sideLength / 8;
     }
 
     /**
@@ -196,21 +235,21 @@ export default class OrbitView extends React.Component {
         this.sun_longitude = Math.atan2(this.y_sun, this.x_sun) * 180 / Math.PI;
 
         /* For Debugging Purposes */
-        this.setState({
-            t: t,
-            x_equant: this.x_equant,
-            y_equant: this.y_equant,
-            x_center: this.x_center,
-            y_center: this.y_center,
-            x_deferent: this.x_deferent,
-            y_deferent: this.y_deferent,
-            x_planet: this.x_planet,
-            y_planet: this.y_planet,
-            ecliptic_longitude: this.ecliptic_longitude,
-            x_sun: this.x_sun,
-            y_sun: this.y_sun,
-            sun_longitude: this.sun_longitude,
-        })
+        // this.setState({
+        //     t: t,
+        //     x_equant: this.x_equant,
+        //     y_equant: this.y_equant,
+        //     x_center: this.x_center,
+        //     y_center: this.y_center,
+        //     x_deferent: this.x_deferent,
+        //     y_deferent: this.y_deferent,
+        //     x_planet: this.x_planet,
+        //     y_planet: this.y_planet,
+        //     ecliptic_longitude: this.ecliptic_longitude,
+        //     x_sun: this.x_sun,
+        //     y_sun: this.y_sun,
+        //     sun_longitude: this.sun_longitude,
+        // })
     }
 
     newEarthGraphic() {
@@ -238,10 +277,6 @@ export default class OrbitView extends React.Component {
     updateSun() {
         this.sunGraphic.x = this.xUnitsToPixels(this.x_sun);
         this.sunGraphic.y = this.yUnitsToPixels(this.y_sun);
-        this.setState({
-            pix_x_sun: this.sunGraphic.x,
-            pix_y_sun: this.sunGraphic.y,
-        })
     }
 
     newEquantGraphic() {
@@ -259,10 +294,6 @@ export default class OrbitView extends React.Component {
     updateEquant() {
         this.equantGraphic.x = this.xUnitsToPixels(this.x_equant);
         this.equantGraphic.y = this.yUnitsToPixels(this.y_equant);
-        this.setState({
-            pix_x_equant: this.equantGraphic.x,
-            pix_y_equant: this.equantGraphic.y,
-        });
     }
 
     newEccentricGraphic() {
@@ -294,10 +325,6 @@ export default class OrbitView extends React.Component {
     updatePlanet() {
         this.planetGraphic.x = this.xUnitsToPixels(this.x_planet);
         this.planetGraphic.y = this.yUnitsToPixels(this.y_planet);
-        this.setState({
-            pix_x_planet:this.xUnitsToPixels(this.x_planet),
-            pix_y_planet:this.yUnitsToPixels(this.y_planet),
-        })
     }
 
 

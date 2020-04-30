@@ -1,0 +1,6 @@
+for NAME in aquarius aries cancer capricorn gemini leo libra pisces sagittarius scorpio taurus virgo
+do
+	cat ${NAME}.png | pngtopnm | potrace -i -b svg | sed "s/#000000/#ffffff/" > ${NAME}.svg
+	echo ${NAME}.svg
+done
+
