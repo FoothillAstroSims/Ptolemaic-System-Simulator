@@ -9,18 +9,18 @@ import { PlanetTypes } from './enums.jsx';
  * the OrbitView.
  */
 const CONSTELLATION_TABLE = [
-    [0, 'img/pisces.svg', 'Pisces'],
-    [Math.PI / 6, 'img/aries.svg', 'Aries'],
-    [Math.PI / 3, 'img/taurus.svg', 'Taurus'],
-    [Math.PI / 2, 'img/gemini.svg', 'Gemini'],
-    [2 * Math.PI / 3, 'img/cancer.svg', 'Cancer'],
-    [5 * Math.PI / 6, 'img/leo.svg', 'Leo'],
-    [Math.PI, 'img/virgo.svg', 'Virgo'],
-    [7 * Math.PI / 6, 'img/libra.svg', 'Libra'],
-    [4 * Math.PI / 3, 'img/scorpio.svg', 'Scorpio'],
-    [3 * Math.PI / 2, 'img/sagittarius.svg', 'Sagittarius'],
-    [5 * Math.PI / 3, 'img/capricorn.svg', 'Capricorn'],
-    [11 * Math.PI / 6, 'img/aquarius.svg', 'Aquarius']
+    ['img/pisces.svg', 'Pisces'],
+    ['img/aries.svg', 'Aries'],
+    ['img/taurus.svg', 'Taurus'],
+    ['img/gemini.svg', 'Gemini'],
+    ['img/cancer.svg', 'Cancer'],
+    ['img/leo.svg', 'Leo'],
+    ['img/virgo.svg', 'Virgo'],
+    ['img/libra.svg', 'Libra'],
+    ['img/scorpio.svg', 'Scorpio'],
+    ['img/sagittarius.svg', 'Sagittarius'],
+    ['img/capricorn.svg', 'Capricorn'],
+    ['img/aquarius.svg', 'Aquarius']
 ];
 
 /**
@@ -95,18 +95,19 @@ export default class OrbitView extends React.Component {
     }
 
     loadConstellations() {
+        let angle = 0;
         for (let row of CONSTELLATION_TABLE) {
-            let angle = row[0];
-            let filepath = row[1];
-            // let name = row[2];
+            let filepath = row[0];
+            // let name = row[1];
             let sprite = PIXI.Sprite.from(filepath);
             // this.constellations[name] = sprite;
             this.app.stage.addChild(sprite);
             sprite.width = this.sideLength * 0.08;
             sprite.height = this.sideLength * 0.08;
             sprite.anchor.set(0.5);
-            sprite.x = this.xUnitsToPixels(3.6 * Math.sin(angle));
-            sprite.y = this.yUnitsToPixels(3.6 * Math.cos(angle));
+            sprite.x = this.xUnitsToPixels(3.6 * Math.cos(angle));
+            sprite.y = this.yUnitsToPixels(3.6 * Math.sin(angle));
+            angle += Math.PI / 6;
         }
     }
 
