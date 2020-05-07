@@ -38,14 +38,14 @@ export default class PtolemaicSystemSimulator extends React.Component {
                     <pre>PtolemaicSystemSimulator.state = {JSON.stringify(this.state, null, '\t')}</pre>
                 */}
                 <div className="wrapper">
-                    <div className="box">
+                    <div className="box leftBox">
                         <OrbitView
                             className = "OrbitView"
                             planetaryParameters={this.state.planetaryParameters}
                             controls={this.state.controls}
                         />
                     </div>
-                    <div className="box">
+                    <div className="box rightBox">
                         <PlanetaryParameters
                             params={this.state.planetaryParameters}
                             onChange={this.handleNewPlantearyParameters.bind(this)}
@@ -54,6 +54,13 @@ export default class PtolemaicSystemSimulator extends React.Component {
                             controls = {this.state.controls}
                             onChange = {this.handleNewControlSettings.bind(this)}
                         />
+                        <div id="survey">
+                            <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=n7L3RQCxQUyAT7NBighZStjAWTIFlutChq8ZZEGLLMdUMDYyTFJPMTZTQkpSVVhNSFdVRzgwTjhJMC4u"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <button type="button" id="feedbackButton">Give us feedback!</button>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </React.Fragment>

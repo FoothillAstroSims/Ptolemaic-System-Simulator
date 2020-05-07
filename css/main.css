@@ -1,3 +1,6 @@
+body {
+    margin: 0;
+}
 .wrapper{
     display: grid;
     grid-template-columns: min-content 25em;
@@ -6,15 +9,15 @@
 }
 .box {
     border: 1px solid #555;
+}
+.rightBox {
     padding: 0.5em;
 }
 canvas {
     /* display: block; */
 }
 .OrbitView {
-    /* position: absolute; */
-    /* overflow: hidden; */
-    border: 1px solid green;
+    /* border: 1px solid green; */
 }
 
 .CheckBoxLabel {
@@ -33,4 +36,14 @@ canvas {
 .CheckboxWrap_unchecked {
     border: outset;
     background: #f5f5f5;
+}
+
+
+#survey {
+    margin: 1em 0;
+}
+#feedbackButton {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    padding: 0.5em;
 }
