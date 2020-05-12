@@ -98,6 +98,7 @@ export default class ZodiacStrip extends React.Component {
     longitudeToLocationX(longitude) {
         let x = longitude < 0 ? longitude + 360 : longitude;
         x = (x + 90) % 360;
+        x = -x + 360;
         return WIDTH * x / 360;
     }
 
