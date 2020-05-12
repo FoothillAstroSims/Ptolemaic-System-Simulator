@@ -235,6 +235,12 @@ export default class OrbitView extends React.Component {
         this.y_sun = 3 * R * Math.sin(2 * Math.PI * t);
         this.sun_longitude = Math.atan2(this.y_sun, this.x_sun) * 180 / Math.PI;
 
+        /* Let the Longitudes be Known to other Components */
+        this.props.onLongitudeChange({
+            sun_longitude: this.sun_longitude,
+            ecliptic_longitude: this.ecliptic_longitude,
+        })
+
         /* For Debugging Purposes */
         // this.setState({
         //     t: t,
@@ -433,4 +439,5 @@ OrbitView.propTypes = {
         showEccentricDeferentLine: PropTypes.bool.isRequired,
         pathDuration:              PropTypes.number.isRequired
     }).isRequired,
+    onLongitudeChange: PropTypes.func.isRequired,
 }

@@ -3,6 +3,7 @@ import { PlanetTypes } from './enums.jsx';
 import OrbitView from './OrbitView.jsx';
 import PlanetaryParameters from './PlanetaryParameters.jsx';
 import ControlsAndSettings from './ControlsAndSettings.jsx';
+import ZodiacStrip from './ZodiacStrip.jsx';
 
 export default class PtolemaicSystemSimulator extends React.Component {
     constructor(props) {
@@ -26,6 +27,10 @@ export default class PtolemaicSystemSimulator extends React.Component {
                 showEpicyclePlanetLine: false,
                 showEccentricDeferentLine: false,
                 pathDuration: 0.2
+            },
+            longitudes: {
+                sun_longitude: 0,
+                ecliptic_longitude: 0,
             }
         }
     }
@@ -43,6 +48,11 @@ export default class PtolemaicSystemSimulator extends React.Component {
                             className = "OrbitView"
                             planetaryParameters={this.state.planetaryParameters}
                             controls={this.state.controls}
+                            onLongitudeChange={this.handleNewLongitudes.bind(this)}
+                        />
+                        <ZodiacStrip
+                            className="ZodiacStrip"
+                            longitudes={this.state.longitudes}
                         />
                     </div>
                     <div className="box rightBox">
@@ -73,5 +83,9 @@ export default class PtolemaicSystemSimulator extends React.Component {
 
     handleNewControlSettings(newSettings) {
         this.setState({ controls: newSettings });
+    }
+
+    handleNewLongitudes(newLongitudes) {
+        this.setState({ longitudes: newLongitudes })
     }
 }
