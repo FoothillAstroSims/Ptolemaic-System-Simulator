@@ -53,6 +53,7 @@ export default class PtolemaicSystemSimulator extends React.Component {
                         <ZodiacStrip
                             className="ZodiacStrip"
                             longitudes={this.state.longitudes}
+                            planetType={this.state.planetaryParameters.planetType}
                         />
                     </div>
                     <div className="box rightBox">
