@@ -4,6 +4,7 @@ import OrbitView from './OrbitView.jsx';
 import PlanetaryParameters from './PlanetaryParameters.jsx';
 import ControlsAndSettings from './ControlsAndSettings.jsx';
 import ZodiacStrip from './ZodiacStrip.jsx';
+import Timer from './Timer.jsx';
 
 export default class PtolemaicSystemSimulator extends React.Component {
     constructor(props) {
@@ -31,7 +32,8 @@ export default class PtolemaicSystemSimulator extends React.Component {
             longitudes: {
                 sun_longitude: 0,
                 ecliptic_longitude: 0,
-            }
+            },
+            time: 0,
         }
     }
 
@@ -49,6 +51,7 @@ export default class PtolemaicSystemSimulator extends React.Component {
                             planetaryParameters={this.state.planetaryParameters}
                             controls={this.state.controls}
                             onLongitudeChange={this.handleNewLongitudes.bind(this)}
+                            onTimeChange={this.handleNewTime.bind(this)}
                         />
                         <ZodiacStrip
                             className="ZodiacStrip"
@@ -65,6 +68,8 @@ export default class PtolemaicSystemSimulator extends React.Component {
                             controls = {this.state.controls}
                             onChange = {this.handleNewControlSettings.bind(this)}
                         />
+                        <Timer time = {this.state.time} />
+                        <h2>Feedback</h2>
                         <div id="survey">
                             <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=n7L3RQCxQUyAT7NBighZStjAWTIFlutChq8ZZEGLLMdUMDYyTFJPMTZTQkpSVVhNSFdVRzgwTjhJMC4u"
                                target="_blank"
@@ -88,5 +93,9 @@ export default class PtolemaicSystemSimulator extends React.Component {
 
     handleNewLongitudes(newLongitudes) {
         this.setState({ longitudes: newLongitudes })
+    }
+
+    handleNewTime(newTime) {
+        this.setState({ time: newTime })
     }
 }

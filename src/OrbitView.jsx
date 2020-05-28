@@ -114,12 +114,10 @@ export default class OrbitView extends React.Component {
     render() {
         return (
             <React.Fragment>
-            <div className="OrbitViewWrapper">
-                <div
-                    className="OrbitView"
-                    ref={(thisDiv) => { this.pixiElement = thisDiv; }}
-                />
-            </div>
+            <div
+                className="OrbitView"
+                ref={(thisDiv) => { this.pixiElement = thisDiv; }}
+            />
             {/*
             <pre>{JSON.stringify(this.state, null, '\t')}</pre>
             */}
@@ -180,6 +178,7 @@ export default class OrbitView extends React.Component {
             this.currentTime += delta * this.props.controls.animationRate / 1000;
         }
         let t = this.currentTime;
+        this.props.onTimeChange(t);
 
         /* Alias Variables for Planetary Params */
         let ecc = this.props.planetaryParameters.eccentricity;
@@ -440,4 +439,5 @@ OrbitView.propTypes = {
         pathDuration:              PropTypes.number.isRequired
     }).isRequired,
     onLongitudeChange: PropTypes.func.isRequired,
+    onTimeChange: PropTypes.func.isRequired,
 }

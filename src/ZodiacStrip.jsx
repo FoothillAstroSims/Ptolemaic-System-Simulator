@@ -154,7 +154,7 @@ export default class ZodiacStrip extends React.Component {
         let xp = this.planetGraphic.x;
         let direct_dist = Math.abs(xs - xp);
         let wrap_dist = (xp < xs) ? (WIDTH - xs + xp) : (WIDTH - xp + xs);
-        this.angleText.text = (Math.min(direct_dist, wrap_dist) * 360 / WIDTH).toFixed(1) + '°';
+        this.angleText.text = Math.floor(Math.min(direct_dist, wrap_dist) * 360 / WIDTH) + '°';
         let drawDirect = direct_dist < wrap_dist;
         let wrapLeft = xp > xs;
         let y = ARROW_LINE_Y;

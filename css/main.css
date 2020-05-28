@@ -1,6 +1,10 @@
 body {
     margin: 0;
 }
+#sim-root {
+    width: fit-content;
+    margin: 0 auto;
+}
 .wrapper{
     display: grid;
     grid-template-columns: min-content 25em;
