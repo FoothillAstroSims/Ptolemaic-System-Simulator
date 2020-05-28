@@ -82,6 +82,7 @@ export default class OrbitView extends React.Component {
         // window.addEventListener('resize', this.onResize.bind(this));
         this.pixiElement.appendChild(this.app.view);
         // this.app.stage.interactive = true;
+        this.app.stage.addChild(rope);
         this.app.stage.addChild(this.overlay);
         this.app.stage.addChild(this.earthGraphic);
         this.app.stage.addChild(this.sunGraphic);
@@ -91,6 +92,7 @@ export default class OrbitView extends React.Component {
         this.app.stage.addChild(this.epicycle);
         this.loadConstellations();
         this.updateAll(0); // initial update.
+        initializeTraceArray(this.planetGraphic.x, this.planetGraphic.y);
         this.animationFrameIdentifier = window.requestAnimationFrame(this.animationFrameLoop);
     }
 
@@ -331,6 +333,7 @@ export default class OrbitView extends React.Component {
     updatePlanet() {
         this.planetGraphic.x = this.xUnitsToPixels(this.x_planet);
         this.planetGraphic.y = this.yUnitsToPixels(this.y_planet);
+        updatePlanetTrace(this.planetGraphic.x, this.planetGraphic.y, this.props.controls.pathDuration);
     }
 
 
@@ -440,4 +443,100 @@ OrbitView.propTypes = {
     }).isRequired,
     onLongitudeChange: PropTypes.func.isRequired,
     onTimeChange: PropTypes.func.isRequired,
+}
+
+
+
+const trailTexture = PIXI.Texture.from('img/trail.png');
+const historyX = [];
+const historyY = [];
+// historySize determines how long the trail will be.
+const historySize = 5000;
+// ropeSize determines how smooth the trail will be.
+const ropeSize = Math.floor(1.5 * historySize);
+const points = [];
+
+// Create history array.
+for (let i = 0; i < historySize; i++) {
+    historyX.push(0);
+    historyY.push(0);
+}
+
+// Create rope points.
+for (let i = 0; i < ropeSize; i++) {
+    points.push(new PIXI.Point(0, 0));
+}
+
+// Create the rope
+const rope = new PIXI.SimpleRope(trailTexture, points);
+
+// Set the blendmode
+rope.blendmode = PIXI.BLEND_MODES.ADD;
+
+
+function clipInput(k, arr) {
+    if (k < 0) k = 0;
+    if (k > arr.length - 1) k = arr.length - 1;
+    return arr[k];
+}
+
+function getTangent(k, factor, array) {
+    return factor * (clipInput(k + 1, array) - clipInput(k - 1, array)) / 2;
+}
+
+function cubicInterpolation(array, t, tangentFactor) {
+    if (tangentFactor == null) tangentFactor = 1;
+
+    const k = Math.floor(t);
+    const m = [getTangent(k, tangentFactor, array), getTangent(k + 1, tangentFactor, array)];
+    const p = [clipInput(k, array), clipInput(k + 1, array)];
+    t -= k;
+    const t2 = t * t;
+    const t3 = t * t2;
+    return (2 * t3 - 3 * t2 + 1) * p[0] + (t3 - 2 * t2 + t) * m[0] + (-2 * t3 + 3 * t2) * p[1] + (t3 - t2) * m[1];
+}
+
+
+/**
+ * Initializes every point in the Tracer's History with the same value. Ensures
+ * that the trace doesn't accidently draw an incorrect trace from the (0,0)
+ * pixel to the planet's default starting position.
+ */
+function initializeTraceArray(planetX, planetY) {
+    for (let i = 0; i < historySize; i++) {
+        historyX[i] = planetX;
+        historyY[i] = planetY;
+    }
+    for (let i = 0; i < ropeSize; i++) {
+        points[i].set(planetX, planetY);
+    }
+}
+
+/**
+ * Adds a new position value to the planet tracing history, allowing the tracer
+ * line to continue following the planet on the screen. Call this function
+ * whenever the planet sprite is moved to a new position.
+ */
+function updatePlanetTrace(x, y, pathDuration) {
+
+    // Update the positions values to history
+    historyX.pop();
+    historyX.unshift(x);
+    historyY.pop();
+    historyY.unshift(y);
+
+    // determine max iterations based on the path duration
+    rope.size = Math.floor((ropeSize - 1) * pathDuration) + 1;
+
+    // Update the points to correspond with history.
+    for (let i = 0; i < ropeSize; i++) {
+        const p = points[i];
+
+        // Smooth the curve with cubic interpolation to prevent sharp edges.
+        const ix = cubicInterpolation(historyX, i / ropeSize * historySize);
+        const iy = cubicInterpolation(historyY, i / ropeSize * historySize);
+
+        p.x = ix;
+        p.y = iy;
+    }
 }
