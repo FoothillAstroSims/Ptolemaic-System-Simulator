@@ -71,7 +71,7 @@ export default class OrbitView extends React.Component {
     componentDidMount() {
         this.app = new PIXI.Application({
             antialias: true,
-            resolution: window.devicePixelRatio || 1,
+            resolution: Math.min(window.devicePixelRatio, 3) || 1,
             autoDensity: true,
             width: this.sideLength,
             height: this.sideLength,

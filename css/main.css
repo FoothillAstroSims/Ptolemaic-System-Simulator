@@ -1,29 +1,40 @@
 body {
     margin: 0;
+    background: rgb(51, 57, 64);
+    color: white;
 }
+
 #sim-root {
     width: fit-content;
     margin: 0 auto;
 }
+
 .wrapper{
     display: grid;
     grid-template-columns: min-content 25em;
-    /* width: calc(620px + 25em); */
-    /* width: 100%; */
-}
-.box {
-    border: 1px solid #555;
-}
-.rightBox {
-    padding: 0.5em;
-}
-canvas {
-    /* display: block; */
-}
-.OrbitView {
-    /* border: 1px solid green; */
 }
 
+.transparentControlSection,
+.controlSection {
+    margin: 0 1em 1em;
+}
+
+.controlSection {
+    background: rgb(212, 212, 212);
+    color: black;
+    border: 1px solid black;
+    padding: 0.5em;
+}
+
+canvas {
+    display: block;
+}
+
+.OrbitView {
+    height: calc(800px + 1em);
+}
+
+/* 
 .CheckBoxLabel {
 }
 .CheckboxWrap_unchecked,
@@ -41,13 +52,8 @@ canvas {
     border: outset;
     background: #f5f5f5;
 }
-
+*/
 
 #survey {
     margin: 1em 0;
-}
-#feedbackButton {
-    background-color: #ffc107;
-    border-color: #ffc107;
-    padding: 0.5em;
 }

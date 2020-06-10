@@ -47,6 +47,8 @@ export default class ZodiacStrip extends React.Component {
             antialias: true,
             width: WIDTH,
             height: HEIGHT,
+            resolution: Math.min(window.devicePixelRatio, 3) || 1,
+            autoDensity: true,
         });
         this.pixiElement.appendChild(this.app.view);
         this.app.stage.addChild(this.zodiacGraphic);
@@ -85,7 +87,6 @@ export default class ZodiacStrip extends React.Component {
             fontSize: TITLE_FONT_SIZE,
             fill: TEXT_COLOR,
         });
-        txt.resolution = 2;
         txt.anchor.set(0.5);
         txt.position.x = WIDTH/2;
         txt.position.y = TITLE_FONT_SIZE;
@@ -98,7 +99,6 @@ export default class ZodiacStrip extends React.Component {
             fontSize: ANGLE_TEXT_SIZE,
             fill: TEXT_COLOR,
         });
-        txt.resolution = 2;
         txt.anchor.set(0.5);
         txt.position.x = WIDTH/2;
         txt.position.y = HEIGHT - ANGLE_TEXT_SIZE;

@@ -68,7 +68,6 @@ export default class PlanetaryParameters extends React.Component {
                 <PlanetPresetSelection
                     onSubmit={this.handlePresetSelection}
                 />
-                <br/>
                 <fieldset>
                 <legend>Parameters</legend>
                 <SingleVariableControl
@@ -81,7 +80,6 @@ export default class PlanetaryParameters extends React.Component {
                     value={this.props.params.epicycleSize}
                     onChange={this.handleSingleVariableChange}
                 />
-                <br/>
                 <SingleVariableControl
                     name="eccentricity"
                     displayName="Eccentricity"
@@ -92,7 +90,6 @@ export default class PlanetaryParameters extends React.Component {
                     value={this.props.params.eccentricity}
                     onChange={this.handleSingleVariableChange}
                 />
-                <br/>
                 <SingleVariableControl
                     name="motionRate"
                     displayName="Motion Rate"
@@ -115,28 +112,32 @@ export default class PlanetaryParameters extends React.Component {
                     onChange={this.handleSingleVariableChange}
                 />
                 </fieldset>
-                <br/>
                 <fieldset>
                     <legend>Planet Type</legend>
-                    <label htmlFor="planetTypeRadio1">Superior</label>
-                    <input
-                        type="radio"
-                        name="planetType"
-                        id="planetTypeRadio1"
-                        value={PlanetTypes.SUPERIOR}
-                        checked={this.props.params.planetType === PlanetTypes.SUPERIOR}
-                        onChange={this.handleRadioBoxes.bind(this)}
-                    />
-                    <br/>
-                    <label htmlFor="planetTypeRadio2">Inferior</label>
-                    <input
-                        type="radio"
-                        name="planetType"
-                        id="planetTypeRadio2"
-                        value={PlanetTypes.INFERIOR}
-                        checked={this.props.params.planetType === PlanetTypes.INFERIOR}
-                        onChange={this.handleRadioBoxes.bind(this)}
-                    />
+                    <div className="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            name="planetType"
+                            id="planetTypeRadio1"
+                            value={PlanetTypes.SUPERIOR}
+                            checked={this.props.params.planetType === PlanetTypes.SUPERIOR}
+                            onChange={this.handleRadioBoxes.bind(this)}
+                            className="custom-control-input"
+                        />
+                        <label htmlFor="planetTypeRadio1" className="custom-control-label">Superior</label>
+                    </div>
+                    <div className="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            name="planetType"
+                            id="planetTypeRadio2"
+                            value={PlanetTypes.INFERIOR}
+                            checked={this.props.params.planetType === PlanetTypes.INFERIOR}
+                            onChange={this.handleRadioBoxes.bind(this)}
+                            className="custom-control-input"
+                        />
+                        <label htmlFor="planetTypeRadio2" className="custom-control-label">Inferior</label>
+                    </div>
                 </fieldset>
             </React.Fragment>
         )
@@ -210,14 +211,16 @@ class PlanetPresetSelection extends React.Component {
             );
         });
         return (
-            <form onSubmit={this.handleSubmit}>
-                <label>
+            <form onSubmit={this.handleSubmit} className="form-inline">
+                <label> 
                     PRESETS:
-                    <select value={this.state.value} onChange={this.handleChange}>
+                    &nbsp;&nbsp;
+                    <select value={this.state.value} onChange={this.handleChange} className="form-control form-control-sm">
                         {planetOptionList}
                     </select>
                 </label>
-                <input type="submit" value="OK" />
+                &nbsp;&nbsp;
+                <input type="submit" value="OK" className="btn btn-primary"/>
             </form>
         );
     }
@@ -242,7 +245,7 @@ class SingleVariableControl extends React.Component {
         const value = Number.parseFloat(this.props.value).toFixed(this.props.decimals);
         return (
             <label>
-                {this.props.displayName}:&nbsp;
+                {this.props.displayName}&nbsp;&nbsp;
                 <NumberInputField
                     type="number"
                     name={this.props.name}
@@ -253,6 +256,7 @@ class SingleVariableControl extends React.Component {
                     value={this.props.value}
                     decimals={this.props.decimals}
                     />
+                &nbsp;&nbsp;
                 <input
                     type="range"
                     name={this.props.name}

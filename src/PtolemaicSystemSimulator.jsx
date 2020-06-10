@@ -60,22 +60,36 @@ export default class PtolemaicSystemSimulator extends React.Component {
                         />
                     </div>
                     <div className="box rightBox">
-                        <PlanetaryParameters
-                            params={this.state.planetaryParameters}
-                            onChange={this.handleNewPlantearyParameters.bind(this)}
-                        />
-                        <ControlsAndSettings
-                            controls = {this.state.controls}
-                            onChange = {this.handleNewControlSettings.bind(this)}
-                        />
-                        <Timer time = {this.state.time} />
-                        <h2>Feedback</h2>
-                        <div id="survey">
-                            <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=n7L3RQCxQUyAT7NBighZStjAWTIFlutChq8ZZEGLLMdUMDYyTFJPMTZTQkpSVVhNSFdVRzgwTjhJMC4u"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                <button type="button" id="feedbackButton">Give us feedback!</button>
-                            </a>
+                        <div className="controlSection">
+                            <PlanetaryParameters
+                                params={this.state.planetaryParameters}
+                                onChange={this.handleNewPlantearyParameters.bind(this)}
+                            />
+                        </div>
+                        <div className="controlSection">
+                            <ControlsAndSettings
+                                controls = {this.state.controls}
+                                onChange = {this.handleNewControlSettings.bind(this)}
+                            />
+                        </div>
+                        <div className="controlSection">
+                            <Timer time = {this.state.time} />
+                        </div>
+                        <div className="transparentControlSection">
+                            <div id="survey">
+                                <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=n7L3RQCxQUyAT7NBighZStjAWTIFlutChq8ZZEGLLMdUMDYyTFJPMTZTQkpSVVhNSFdVRzgwTjhJMC4u"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >
+                                    <button 
+                                        type="button" 
+                                        id="feedbackButton"
+                                        className="btn btn-warning"
+                                    >
+                                        Give us feedback!
+                                    </button>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
