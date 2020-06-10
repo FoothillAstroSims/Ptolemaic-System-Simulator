@@ -402,23 +402,6 @@ export default class OrbitView extends React.Component {
             this.overlay.endFill();
         }
     }
-
-    /**
-     * The function that is called when the PIXI.JS canvas itself is resized.
-     *
-     * I'm leaving this commented out because I haven't yet figured out how to
-     * get it to resize correctly. Will probably require some messing around
-     * with CSS as well.
-     *
-     */
-    // onResize() {
-    //     this.sideLength = this.app.view.width;
-    //     // this.app.renderer.resize(this.sideLength, this.sideLength);
-    //     console.log("resized to:", this.app.view.width, this.app.view.height);
-    //     this.setState({
-    //         "side length": this.sideLength
-    //     });
-    // }
 }
 
 OrbitView.propTypes = {

@@ -29,14 +29,16 @@ export default class ControlsAndSettings extends React.Component {
         return (
             <React.Fragment>
                 <h2>Controls and Settings</h2>
-                <input
-                    className="btn btn-primary"
-                    type="button"
-                    value={buttonValue}
-                    onClick={this.handleButtonClick.bind(this)}
-                />
-                <br/>
+                <p>
+                    <input
+                        className="btn btn-primary"
+                        type="button"
+                        value={buttonValue}
+                        onClick={this.handleButtonClick.bind(this)}
+                    />
+                </p>
                 <label htmlFor="animationRate">Animation Rate</label>
+                &nbsp;&nbsp;
                 <input
                     name="animationRate"
                     type="range"
@@ -46,16 +48,19 @@ export default class ControlsAndSettings extends React.Component {
                     value={this.props.controls.animationRate}
                     onChange={this.handleSliderChange.bind(this)}
                 />
-                <div className="custom-control custom-checkbox">
-                    {CheckBox("showDeferent", "Show Deferent")}
-                    {CheckBox("showEpicycle", "Show Epicycle")}
-                    {CheckBox("showPlanetVector", "Show Planet Vector")}
-                    {CheckBox("showEquantVector", "Show Equant Vector")}
-                    {CheckBox("showEarthSunLine", "Show Earth-Sun Line")}
-                    {CheckBox("showEpicyclePlanetLine", "Show Epicycle Planet Line")}
-                    {CheckBox("showEccentricDeferentLine", "Show Eccentric-Deferent Line")}
-                </div>
+                <p>
+                    <div className="custom-control custom-checkbox">
+                        {CheckBox("showDeferent", "Show Deferent")}
+                        {CheckBox("showEpicycle", "Show Epicycle")}
+                        {CheckBox("showPlanetVector", "Show Planet Vector")}
+                        {CheckBox("showEquantVector", "Show Equant Vector")}
+                        {CheckBox("showEarthSunLine", "Show Earth-Sun Line")}
+                        {CheckBox("showEpicyclePlanetLine", "Show Epicycle Planet Line")}
+                        {CheckBox("showEccentricDeferentLine", "Show Eccentric-Deferent Line")}
+                    </div>
+                </p>
                 <label htmlFor="pathDuration">Path Duration</label>
+                &nbsp;&nbsp;
                 <input
                     name="pathDuration"
                     type="range"

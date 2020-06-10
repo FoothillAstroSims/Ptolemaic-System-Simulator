@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-// import { PlanetTypes } from './enums.jsx';
 import * as PIXI from 'pixi.js'
 
 const WIDTH = 800;
@@ -62,23 +61,10 @@ export default class ZodiacStrip extends React.Component {
     }
 
     animationFrameLoop() {
-
-        /* Determine whether the planet is in front or behind the sun */
-        // let isSuperior = (this.props.planetType === PlanetTypes.SUPERIOR);
-        // let childIndexSun = isSuperior? 2 : 1;
-        // let childIndexPlanet = isSuperior? 1 : 2;
-        // this.app.stage.setChildIndex(this.sunGraphic, childIndexSun);
-        // this.app.stage.setChildIndex(this.planetGraphic, childIndexPlanet);
-
         /* Placement of the Planet and Sun based on longitude */
         this.sunGraphic.x = this.longitudeToLocationX(this.props.longitudes.sun_longitude);
         this.planetGraphic.x = this.longitudeToLocationX(this.props.longitudes.ecliptic_longitude);
         this.updateArrow();
-
-        /* TODO: Determine whether to wrap line around the strip */
-
-        /* Loop */
-        // window.requestAnimationFrame(this.animationFrameLoop);
     }
 
     newTitleText() {
