@@ -170,6 +170,13 @@ export default class OrbitView extends React.Component {
     }
 
     /**
+     * Resets the simulation to time = 0, which is the initial default state.
+     */
+    reset() {
+        this.currentTime = 0;
+    }
+
+    /**
      * PhysicsUpdate is where the most important variables are updated.
      * Those variables are used by the other "update" functions.
      */
@@ -430,6 +437,12 @@ OrbitView.propTypes = {
 
 
 
+
+
+
+
+
+
 const trailTexture = PIXI.Texture.from('img/trail.png');
 const historyX = [];
 const historyY = [];
@@ -523,3 +536,4 @@ function updatePlanetTrace(x, y, pathDuration) {
         p.y = iy;
     }
 }
+

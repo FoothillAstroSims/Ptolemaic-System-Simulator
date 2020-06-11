@@ -5,10 +5,12 @@ import PlanetaryParameters from './PlanetaryParameters.jsx';
 import ControlsAndSettings from './ControlsAndSettings.jsx';
 import ZodiacStrip from './ZodiacStrip.jsx';
 import Timer from './Timer.jsx';
+import TitleBar from './TitleBar.jsx';
 
 export default class PtolemaicSystemSimulator extends React.Component {
     constructor(props) {
         super(props);
+        this.orbitViewRef = React.createRef();
         this.state = {
             planetaryParameters: {
                 epicycleSize: 0.66,
@@ -34,13 +36,16 @@ export default class PtolemaicSystemSimulator extends React.Component {
                 ecliptic_longitude: 0,
             },
             time: 0,
+            reset: false,
         }
     }
 
     render() {
         return (
             <React.Fragment>
-                <h1>Ptolemaic System Simulator</h1>
+                <TitleBar 
+                    onResetClick={this.handleResetButtonClick.bind(this)} 
+                />
                 <div className="wrapper">
                     <div className="box leftBox">
                         <OrbitView
@@ -49,6 +54,7 @@ export default class PtolemaicSystemSimulator extends React.Component {
                             controls={this.state.controls}
                             onLongitudeChange={this.handleNewLongitudes.bind(this)}
                             onTimeChange={this.handleNewTime.bind(this)}
+                            ref={this.orbitViewRef}
                         />
                         <ZodiacStrip
                             className="ZodiacStrip"
@@ -78,8 +84,8 @@ export default class PtolemaicSystemSimulator extends React.Component {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 >
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         id="feedbackButton"
                                         className="btn btn-warning"
                                     >
@@ -108,5 +114,9 @@ export default class PtolemaicSystemSimulator extends React.Component {
 
     handleNewTime(newTime) {
         this.setState({ time: newTime })
+    }
+
+    handleResetButtonClick() {
+        this.orbitViewRef.current.reset();
     }
 }
