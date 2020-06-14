@@ -3,6 +3,10 @@ body {
     background: rgb(51, 57, 64);
 }
 
+fieldset {
+    margin-top: 1em;
+}
+
 #sim-root {
     width: fit-content;
     margin: 0 auto;
@@ -10,7 +14,8 @@ body {
 
 .wrapper{
     display: grid;
-    grid-template-columns: min-content 25em;
+    grid-template-columns: min-content 30em;
+    padding: 0 0.5rem 0.5rem 0.5rem;
 }
 
 .transparentControlSection,
@@ -19,14 +24,16 @@ body {
 }
 
 .controlSection {
-    background: rgb(212, 212, 212);
-    color: black;
+    background: black;
+    color: white;
+    border-radius: 6px;
     border: 1px solid black;
-    padding: 0.5em;
+    padding: 1em;
 }
 
 canvas {
     display: block;
+    border-radius: 6px;
 }
 
 .OrbitView {
