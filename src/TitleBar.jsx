@@ -9,7 +9,7 @@ export default class TitleBar extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <nav className="navbar navbar-expand-md navbar-light bg-dark justify-content-between">
+                <nav className="navbar navbar-expand navbar-light bg-dark justify-content-between">
                     <span className="navbar-brand mb-0 text-light h1">Ptolemaic System Simulator</span>
                     <ul className="navbar-nav">
                         <li className="nav-item">
