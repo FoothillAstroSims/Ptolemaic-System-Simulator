@@ -117,6 +117,12 @@ export default class PtolemaicSystemSimulator extends React.Component {
     }
 
     handleResetButtonClick() {
+        this.setState({ 
+            controls: {
+                ...this.state.controls,
+                isAnimationEnabled: false,
+            }
+        });
         this.orbitViewRef.current.reset();
     }
 }

@@ -179,6 +179,9 @@ export default class OrbitView extends React.Component {
      */
     reset() {
         this.currentTime = 0;
+        this.deferentAngle = 0;
+        this.epicycleAngle = 0;
+        this.updateAll(0);
     }
 
     /**
