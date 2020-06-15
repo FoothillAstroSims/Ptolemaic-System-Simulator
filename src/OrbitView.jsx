@@ -37,7 +37,7 @@ export default class OrbitView extends React.Component {
          * Side Length is used to determine the legnth of a side of the PIXI
          * Canvas.  Both Width and Height will be set to the side length,
          * this is to make the drawings independent from the actual pixel
-         * dimensions of the drawings, so that the animation can be resized.
+         * dimensions of the drawings.
          * @type {Number}
          */
         this.sideLength = 800;
@@ -66,6 +66,14 @@ export default class OrbitView extends React.Component {
          * delta time.
          */
         this.lastTimestamp = 0;
+
+        /* Deferent and Epicycle Angles are saved and incremented with each
+        time step. The save-and-increment approach works better for these 
+        variables, because doing a full recalculation each frame can result in
+        the planety rapidly teleporting around the screen while the user
+        is adjusting the "MotionRate" parameter.  */
+        this.deferentAngle = 0;
+        this.epicycleAngle = 0;
     }
 
     componentDidMount() {
@@ -75,13 +83,10 @@ export default class OrbitView extends React.Component {
             autoDensity: true,
             width: this.sideLength,
             height: this.sideLength,
-            // autoResize: true,
         });
         this.app.renderer.plugins.interaction.autoPreventDefault = false;
         this.app.renderer.view.style['touch-action'] = 'auto';
-        // window.addEventListener('resize', this.onResize.bind(this));
         this.pixiElement.appendChild(this.app.view);
-        // this.app.stage.interactive = true;
         this.app.stage.addChild(rope);
         this.app.stage.addChild(this.overlay);
         this.app.stage.addChild(this.earthGraphic);
@@ -208,11 +213,14 @@ export default class OrbitView extends React.Component {
 
         /* Calculate Deferent Angle */
         let omega = 2 * Math.PI * deferentRate;
-        let deferentAngle = omega * t;
+        if (this.props.controls.isAnimationEnabled === true) {
+            this.deferentAngle += omega * delta * this.props.controls.animationRate / 1000;
+            this.epicycleAngle += 2 * Math.PI * epicycleRate * delta * this.props.controls.animationRate / 1000;
+        }
 
         /* Calculate Distance from Equant to Epicycle Center */
         let a = 1;
-        let b = -2 * ecc * Math.cos(Math.PI - apogee * Math.PI / 180 + deferentAngle);
+        let b = -2 * ecc * Math.cos(Math.PI - apogee * Math.PI / 180 + this.deferentAngle);
         let c = Math.pow(ecc, 2) - Math.pow(R, 2);
         let discriminant = Math.pow(b, 2) - 4 * a * c;
         let R_equant_epicycle = (-1 * b + Math.sqrt(discriminant)) / (2 * a);
@@ -226,12 +234,12 @@ export default class OrbitView extends React.Component {
         this.y_center = ecc * Math.sin(apogee * Math.PI / 180);
 
         /* Calculate Deferent Position */
-        this.x_deferent = R_equant_epicycle * Math.cos(deferentAngle);
-        this.y_deferent = R_equant_epicycle * Math.sin(deferentAngle);
+        this.x_deferent = R_equant_epicycle * Math.cos(this.deferentAngle);
+        this.y_deferent = R_equant_epicycle * Math.sin(this.deferentAngle);
 
         /* Calculate Motion Around Epicycle */
-        this.x_epicycle = R_e * Math.cos(2 * Math.PI * epicycleRate * t);
-        this.y_epicycle = R_e * Math.sin(2 * Math.PI * epicycleRate * t);
+        this.x_epicycle = R_e * Math.cos(this.epicycleAngle);
+        this.y_epicycle = R_e * Math.sin(this.epicycleAngle);
 
         /* Calculate Planet */
         this.x_planet = this.x_equant + this.x_deferent + this.x_epicycle;
