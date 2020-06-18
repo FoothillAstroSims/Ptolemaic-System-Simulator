@@ -77,6 +77,11 @@ export default class OrbitView extends React.Component {
         this.epicycleAngle = 0;
 
         this.pathTracer = new PathTracer(0.2);
+
+        /* Variables for Dragging */
+        this.isSunDragging = false;
+        this.sunDraggingEventData = null;
+        this.deltaTimeFromDrag = 0;
     }
 
     componentDidMount() {
@@ -121,6 +126,11 @@ export default class OrbitView extends React.Component {
             }
             this.updateAll(0);
             this.pathTracer.clear(this.planetGraphic.x, this.planetGraphic.y);
+        }
+
+        /* When Animation is playing */
+        if (prevProps.controls.isAnimationEnabled !== this.props.controls.isAnimationEnabled) {
+            this.sunGraphic.interactive = !this.props.controls.isAnimationEnabled;
         }
     }
 
@@ -213,9 +223,16 @@ export default class OrbitView extends React.Component {
      */
     physicsUpdate(delta) {
 
+        delta = delta * this.props.controls.animationRate / 1000;
+
         /* Increment Time if Animation is On */
         if (this.props.controls.isAnimationEnabled === true) {
-            this.currentTime += delta * this.props.controls.animationRate / 1000;
+            this.currentTime += delta;
+        }
+        else if (this.isSunDragging === true) {
+            this.currentTime += this.deltaTimeFromDrag;
+            delta = this.deltaTimeFromDrag;
+            this.deltaTimeFromDrag = 0;
         }
         let t = this.currentTime;
         this.props.onTimeChange(t);
@@ -239,9 +256,9 @@ export default class OrbitView extends React.Component {
 
         /* Calculate Deferent Angle */
         let omega = 2 * Math.PI * deferentRate;
-        if (this.props.controls.isAnimationEnabled === true) {
-            this.deferentAngle += omega * delta * this.props.controls.animationRate / 1000;
-            this.epicycleAngle += 2 * Math.PI * epicycleRate * delta * this.props.controls.animationRate / 1000;
+        if (this.props.controls.isAnimationEnabled === true || this.isSunDragging === true) {
+            this.deferentAngle += omega * delta;
+            this.epicycleAngle += 2 * Math.PI * epicycleRate * delta;
         }
         // this.deferentAngle = omega * t;
         // this.epicycleAngle = 2 * Math.PI * epicycleRate * t;
@@ -320,8 +337,13 @@ export default class OrbitView extends React.Component {
         g.clear();
         g.lineStyle(2, 0xFFFFFF, 1);
         g.beginFill(0xf5c242, 1);
-        g.drawCircle(0, 0, this.sideLength / 60);
+        g.drawCircle(0, 0, this.sideLength / 50);
         g.endFill();
+        g.interactive = true;
+        g.on('pointerdown', (event) => this.onSunDragStart(event));
+        g.on('pointerup', (event) => this.onSunDragEnd(event));
+        g.on('pointerupoutside', (event) => this.onSunDragEnd(event));
+        g.on('pointermove', (event) => this.onSunDragMove(event));
         return g;
     }
 
@@ -376,7 +398,7 @@ export default class OrbitView extends React.Component {
     updatePlanet() {
         this.planetGraphic.x = this.xUnitsToPixels(this.x_planet);
         this.planetGraphic.y = this.yUnitsToPixels(this.y_planet);
-        if (this.props.controls.isAnimationEnabled === true && this.props.controls.animationRate !== 0) {
+        if ((this.props.controls.isAnimationEnabled === true && this.props.controls.animationRate !== 0) || this.isSunDragging) {
             this.pathTracer.addLocation(this.planetGraphic.x, this.planetGraphic.y);
         }
     }
@@ -445,6 +467,38 @@ export default class OrbitView extends React.Component {
             this.overlay.moveTo(x1, y1);
             this.overlay.lineTo(x2, y2);
             this.overlay.endFill();
+        }
+    }
+
+    onSunDragStart(event) {
+        this.isSunDragging = true;
+        this.sunGraphic.alpha = 0.5;
+        this.sunDraggingEventData = event.data;
+    }
+
+    onSunDragEnd(event) {
+        this.isSunDragging = false;
+        this.sunGraphic.alpha = 1;
+        this.sunDraggingEventData = null;
+    }
+
+    onSunDragMove(event) {
+        if (this.isSunDragging === true) {
+            const newPosition = this.sunDraggingEventData.getLocalPosition(this.sunGraphic.parent);
+            const lastAngle = Math.atan2(this.sideLength/2 - this.sunGraphic.y, this.sunGraphic.x - this.sideLength/2);
+            const newAngle = Math.atan2(this.sideLength/2 - newPosition.y, newPosition.x - this.sideLength/2);
+            let deltaAngle = newAngle - lastAngle;
+            if ((lastAngle > Math.PI/2 && newAngle < -Math.PI/2)) {
+                deltaAngle += 2 * Math.PI;
+            }
+            else if (lastAngle < -Math.PI/2 && newAngle > Math.PI/2) {
+                deltaAngle -= 2 * Math.PI;
+            }
+            console.log()
+            this.deltaTimeFromDrag += deltaAngle / (2 * Math.PI);
+            this.x_sun = 3 * Math.cos(2 * Math.PI * (this.currentTime + this.deltaTimeFromDrag));
+            this.y_sun = 3 * Math.sin(2 * Math.PI * (this.currentTime + this.deltaTimeFromDrag));
+            this.updateSun();
         }
     }
 }

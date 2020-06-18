@@ -9,8 +9,9 @@ export default class ControlsAndSettings extends React.Component {
     }
 
     render() {
-        const years = Math.floor(this.props.time);
-        const days = Math.floor((this.props.time % 1) * DAYS_PER_YEAR_EXACT);
+        const t = this.props.time;
+        const years = Math.sign(t) * Math.floor(Math.abs(t));
+        const days = Math.sign(t) * (Math.floor(Math.abs(t) * DAYS_PER_YEAR_EXACT) % 365);
         return <React.Fragment>
             <h2>Time Passed</h2>
             <p>{years} Years and {days} Days</p>
